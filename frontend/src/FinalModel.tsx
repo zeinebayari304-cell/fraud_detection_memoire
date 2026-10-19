@@ -1,450 +1,304 @@
-
-import { useState } from 'react'
-
-type Criterion = {
-  title: string
-  description: string
-  importance: string
-}
-
-const candidates = [
-  'XGBoost',
-  'Random Forest',
-  'LightGBM',
-  'SVM linéaire',
-  'Régression logistique',
-]
-
-const criteria: Criterion[] = [
-  {
-    title: 'Détection des fraudes',
-    description:
-      'Recall, Precision, F1-score et PR-AUC sur le jeu de test.',
-    importance: 'Performance',
-  },
-  {
-    title: 'Robustesse adversariale',
-    description:
-      'Résistance aux attaques ZOO et HSJ, ASR et faux négatifs.',
-    importance: 'Sécurité',
-  },
-  {
-    title: 'Efficacité de la défense',
-    description:
-      'Comparaison avant et après Adversarial Training.',
-    importance: 'Robustesse',
-  },
-  {
-    title: 'Coût computationnel',
-    description:
-      'Temps d’entraînement, latence d’inférence et ressources.',
-    importance: 'Efficacité',
-  },
-  {
-    title: 'Capacité de généralisation',
-    description:
-      'Évaluation sur des données non utilisées à l’entraînement.',
-    importance: 'Fiabilité',
-  },
-]
-
-const comparisonFields = [
-  ['Recall', 'Détection des fraudes réelles'],
-  ['Precision', 'Fiabilité des alertes'],
-  ['F1-score', 'Équilibre Precision / Recall'],
-  ['ROC-AUC', 'Discrimination entre classes'],
-  ['PR-AUC', 'Évaluation adaptée aux classes déséquilibrées'],
-  ['ASR ZOO', 'Vulnérabilité face à ZOO'],
-  ['ASR HSJ', 'Vulnérabilité face à HSJ'],
-  ['Recall après défense', 'Efficacité sur exemples adversariaux'],
-  ['Temps d’inférence', 'Coût de la prédiction'],
-]
+import { Link } from 'react-router'
+import { fetchFinalModel } from './api'
+import EvaluationPanel from './EvaluationPanel'
+import { DataState, colorOf, fmt, fmtInt, useAsync } from './useAsync'
 
 const sectionStyle = { marginBottom: 24 }
 
+const pct = (value: number | undefined | null, digits = 1) =>
+  value === undefined || value === null ? '—' : `${fmt(value * 100, digits)} %`
+
+// Codes courts utilisés dans les notebooks 12 et 13.
+const MODEL_CODES: Record<string, string> = {
+  RF: 'Random Forest',
+  XGB: 'XGBoost',
+  LGBM: 'LightGBM',
+  SoftWeighted: 'Hybride pondéré (soft)',
+  SoftEqual: 'Hybride à poids égaux (soft)',
+}
+const REASONS: Record<string, string> = {
+  parsimony: 'Parcimonie (gain insuffisant)',
+}
+const modelLabel = (code: string) => MODEL_CODES[code] ?? code
+const reasonLabel = (code: string) => REASONS[code] ?? code
+
 export default function FinalModel() {
-  const [activeCriterion, setActiveCriterion] = useState(0)
-  const [candidate, setCandidate] = useState(candidates[0])
+  const results = useAsync(fetchFinalModel)
+  const data = results.data
 
   return (
     <main className="dashboard">
       <div className="page-heading">
         <div>
-          <div className="eyebrow">
-            MODEL GOVERNANCE / FINAL SELECTION
-          </div>
+          <div className="eyebrow">MODEL GOVERNANCE / FINAL SELECTION</div>
           <h1>Modèle final</h1>
           <p>
-            Synthèse scientifique, sélection et préparation
-            du déploiement du modèle antifraude.
+            Sélection scientifique du modèle antifraude et état de son
+            déploiement dans l'application.
           </p>
         </div>
-        <span className="dataset-label">
-          SÉLECTION EN ATTENTE
-        </span>
+        <span className="dataset-label">RÉSULTATS NOTEBOOKS 12 & 13</span>
       </div>
 
-      <section
-        className="panel"
-        style={{
-          ...sectionStyle,
-          borderColor: '#28595b',
-          background:
-            'linear-gradient(135deg, #14283a 0%, #142137 80%)',
-        }}
+      <DataState
+        loading={results.loading}
+        error={results.error}
+        hasData={!!data?.available}
+        onRetry={results.reload}
       >
-        <div className="eyebrow">FINAL MODEL / DECISION STATUS</div>
+        {data && (
+          <>
+            <section
+              className="panel"
+              style={{
+                ...sectionStyle,
+                borderColor: '#28595b',
+                background: 'linear-gradient(135deg, #14283a 0%, #142137 80%)',
+              }}
+            >
+              <div className="eyebrow">FINAL MODEL / DECISION</div>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 20,
-          flexWrap: 'wrap',
-          marginTop: 24,
-        }}>
-          <div style={{
-            width: 72,
-            height: 72,
-            borderRadius: 18,
-            background: '#174148',
-            color: '#2dd4bf',
-            display: 'grid',
-            placeItems: 'center',
-            fontSize: 37,
-          }}>
-            ◈
-          </div>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 20,
+                flexWrap: 'wrap', marginTop: 24,
+              }}>
+                <div style={{
+                  width: 72, height: 72, borderRadius: 18,
+                  background: '#174148', color: '#2dd4bf',
+                  display: 'grid', placeItems: 'center', fontSize: 37,
+                }}>
+                  ◈
+                </div>
 
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <h2 style={{ fontSize: 26, margin: '0 0 10px' }}>
-              Sélection en cours
-            </h2>
-            <p style={{
-              color: '#a4b9cd',
-              lineHeight: 1.8,
-              margin: 0,
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <h2 style={{ fontSize: 26, margin: '0 0 10px', color: colorOf(data.selected_model) }}>
+                    {data.selected_model} — défense {data.defense_version}
+                  </h2>
+                  <p style={{ color: '#a4b9cd', lineHeight: 1.8, margin: 0 }}>
+                    Sélectionné sur le jeu de {data.selection.dataset.toLowerCase()}{' '}
+                    parmi les candidats Pareto-efficaces, avec le score
+                    primaire le plus élevé ({fmt(data.selection.primary_score, 3)}).
+                  </p>
+                </div>
+
+                <Link to="/transaction" className="bank-button primary" style={{ textDecoration: 'none' }}>
+                  Tester le modèle →
+                </Link>
+              </div>
+
+              <div className="info-note" style={{ marginTop: 28 }}>
+                <strong>Règle :</strong> {data.selection.rule}.
+                {data.selection.near_tie &&
+                  ` Écart de ${fmt(data.selection.relative_gap_to_second * 100, 2)} % avec le deuxième : quasi-égalité.`}{' '}
+                Stabilité : {data.selection.stability.replaceAll('_', ' ')}.
+              </div>
+            </section>
+
+            <section className="stats-grid">
+              <article className="stat-card">
+                <div className="stat-top">Recall (test)</div>
+                <div className="stat-value">{pct(data.test_clean.Recall)}</div>
+                <p>{fmtInt(data.test_clean.TP)} fraudes détectées, {fmtInt(data.test_clean.FN)} manquées</p>
+              </article>
+              <article className="stat-card">
+                <div className="stat-top">Precision (test)</div>
+                <div className="stat-value">{pct(data.test_clean.Precision)}</div>
+                <p>{fmtInt(data.test_clean.FP)} fausses alertes</p>
+              </article>
+              <article className="stat-card">
+                <div className="stat-top">F1 / PR-AUC (test)</div>
+                <div className="stat-value" style={{ fontSize: 24 }}>
+                  {pct(data.test_clean.F1)} / {pct(data.test_clean.AP)}
+                </div>
+                <p>MCC {fmt(data.test_clean.MCC, 3)}</p>
+              </article>
+              <article className="stat-card">
+                <div className="stat-top">Résistance HSJ (test)</div>
+                <div className="stat-value" style={{ color: '#2dd4bf' }}>
+                  {pct(data.test_hsj.Robustness)}
+                </div>
+                <p>ASR {pct(data.test_hsj.ASR)}</p>
+              </article>
+            </section>
+
+            <EvaluationPanel selectedModel={data.selected_model} />
+
+            <section className="panel" style={sectionStyle}>
+              <div className="panel-header">
+                <div>
+                  <h2>Classement des candidats</h2>
+                  <p>
+                    Score primaire = moyenne pondérée de{' '}
+                    {data.selection.criteria.join(', ')}.
+                  </p>
+                </div>
+                <span className="panel-tag">VALIDATION</span>
+              </div>
+
+              <div className="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>RANG</th>
+                      <th>MODÈLE</th>
+                      <th>DÉFENSE</th>
+                      <th>AP</th>
+                      <th>F1</th>
+                      <th>RECALL</th>
+                      <th>ROBUSTESSE HSJ</th>
+                      <th>SCORE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.ranking.map((row) => (
+                      <tr key={row.model}>
+                        <td>{row.rank}</td>
+                        <td style={{ color: colorOf(row.model), fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          {row.model}
+                          {row.model === data.selected_model && ' ★'}
+                        </td>
+                        <td>{row.version}</td>
+                        <td>{pct(row.ap)}</td>
+                        <td>{pct(row.f1)}</td>
+                        <td>{pct(row.recall)}</td>
+                        <td>{pct(row.hsj_robustness, 0)}</td>
+                        <td>{fmt(row.score, 3)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="panel" style={sectionStyle}>
+              <div className="panel-header">
+                <div>
+                  <h2>Métriques détaillées des candidats</h2>
+                  <p>Jeu de validation, modèles défendus.</p>
+                </div>
+              </div>
+
+              <div className="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>MODÈLE</th>
+                      <th>PRECISION</th>
+                      <th>RECALL</th>
+                      <th>F1</th>
+                      <th>MCC</th>
+                      <th>ROC-AUC</th>
+                      <th>FP</th>
+                      <th>FN</th>
+                      <th>TP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.candidates_validation.map((row) => (
+                      <tr key={row.model}>
+                        <td style={{ color: colorOf(row.model), fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          {row.model}
+                        </td>
+                        <td>{pct(row.precision)}</td>
+                        <td>{pct(row.recall)}</td>
+                        <td>{pct(row.f1)}</td>
+                        <td>{fmt(row.mcc, 3)}</td>
+                        <td>{pct(row.roc_auc)}</td>
+                        <td>{fmtInt(row.fp)}</td>
+                        <td>{fmtInt(row.fn)}</td>
+                        <td>{fmtInt(row.tp)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+              gap: 20,
+              marginBottom: 24,
             }}>
-              Le modèle final sera choisi après validation
-              des résultats expérimentaux du Notebook 12.
-              Aucun modèle n'est actuellement désigné gagnant.
-            </p>
-          </div>
-        </div>
+              <section className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h2>Déploiement dans l'application</h2>
+                    <p>État réel côté serveur</p>
+                  </div>
+                </div>
+                <div className="system-row">
+                  <span>Fichier du modèle chargé</span>
+                  <strong className={data.deployment.model_file_loaded ? 'text-green' : 'text-amber'}>
+                    {data.deployment.model_file_loaded ? 'Oui' : 'Non'}
+                  </strong>
+                </div>
+                <div className="system-row">
+                  <span>Seuil de décision</span>
+                  <strong>{fmt(data.deployment.threshold, 2)}</strong>
+                </div>
+                <div className="system-row">
+                  <span>Seuil optimisé (NB12)</span>
+                  <strong>{data.selection.threshold_optimized ? 'Oui' : 'Non, règle native'}</strong>
+                </div>
+                <div className="system-row">
+                  <span>Test utilisé pour classer</span>
+                  <strong>{data.selection.test_used_for_ranking ? 'Oui' : 'Non'}</strong>
+                </div>
+                {!data.deployment.model_file_loaded && (
+                  <div className="info-note">
+                    {data.deployment.detail ??
+                      'Déposez les fichiers du modèle dans le dossier models/.'}
+                  </div>
+                )}
+              </section>
 
-        <div className="info-note" style={{ marginTop: 28 }}>
-          <strong>Décision scientifique :</strong> la sélection
-          devra prendre en compte les performances sur les
-          transactions originales, la robustesse adversariale,
-          l'efficacité de la défense et le coût computationnel.
-        </div>
-      </section>
-
-      <section className="stats-grid">
-        <article className="stat-card">
-          <div className="stat-top">Modèles candidats</div>
-          <div className="stat-value">5</div>
-          <p>Algorithmes Machine Learning</p>
-        </article>
-
-        <article className="stat-card">
-          <div className="stat-top">Attaques étudiées</div>
-          <div className="stat-value">2</div>
-          <p>ZOO et HopSkipJump</p>
-        </article>
-
-        <article className="stat-card">
-          <div className="stat-top">Modèle sélectionné</div>
-          <div className="stat-value" style={{
-            fontSize: 24,
-            color: '#fbbf24',
-          }}>
-            En attente
-          </div>
-          <p>Résultats du Notebook 12</p>
-        </article>
-
-        <article className="stat-card">
-          <div className="stat-top">Statut API</div>
-          <div className="stat-value" style={{
-            fontSize: 24,
-            color: '#fbbf24',
-          }}>
-            Hors ligne
-          </div>
-          <p>FastAPI non connecté</p>
-        </article>
-      </section>
-
-      <section className="panel" style={sectionStyle}>
-        <div className="panel-header">
-          <div>
-            <h2>Modèles candidats</h2>
-            <p>
-              Les cinq modèles évalués dans les expérimentations.
-            </p>
-          </div>
-          <span className="panel-tag">5 CANDIDATS</span>
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns:
-            'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: 12,
-          marginTop: 25,
-        }}>
-          {candidates.map((name, index) => (
-            <div
-              key={name}
-              style={{
-                padding: 18,
-                background: '#0f1b2f',
-                border: '1px solid #2b4059',
-                borderRadius: 10,
-              }}
-            >
-              <div style={{
-                color: '#2dd4bf',
-                fontSize: 12,
-                marginBottom: 12,
-              }}>
-                MODÈLE 0{index + 1}
-              </div>
-              <strong style={{ fontSize: 15 }}>{name}</strong>
-              <div style={{
-                color: '#91a5bc',
-                fontSize: 11,
-                marginTop: 12,
-              }}>
-                Candidat — non sélectionné
-              </div>
+              {data.hybrid_check && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <div>
+                      <h2>Vérification : modèle hybride</h2>
+                      <p>Notebook 13 — extension exploratoire</p>
+                    </div>
+                  </div>
+                  <div className="system-row">
+                    <span>Modèle retenu</span>
+                    <strong>{modelLabel(data.hybrid_check.decision.selected)}</strong>
+                  </div>
+                  <div className="system-row">
+                    <span>Meilleur hybride</span>
+                    <strong>{modelLabel(data.hybrid_check.decision.best_hybrid)}</strong>
+                  </div>
+                  <div className="system-row">
+                    <span>Gain relatif de l'hybride</span>
+                    <strong>{fmt(data.hybrid_check.decision.relative_gain * 100, 2)} %</strong>
+                  </div>
+                  <div className="system-row">
+                    <span>Motif</span>
+                    <strong>{reasonLabel(data.hybrid_check.decision.reason)}</strong>
+                  </div>
+                </section>
+              )}
             </div>
-          ))}
-        </div>
-      </section>
 
-      <section className="panel" style={sectionStyle}>
-        <div className="panel-header">
-          <div>
-            <h2>Critères de sélection scientifique</h2>
-            <p>
-              Explore les dimensions qui guideront la décision.
-            </p>
-          </div>
-          <span className="panel-tag">DECISION FRAMEWORK</span>
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns:
-            'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 12,
-          marginTop: 25,
-        }}>
-          {criteria.map((item, index) => (
-            <button
-              key={item.title}
-              type="button"
-              onClick={() => setActiveCriterion(index)}
-              aria-pressed={activeCriterion === index}
-              style={{
-                textAlign: 'left',
-                background: activeCriterion === index
-                  ? '#173e45' : '#101c30',
-                color: activeCriterion === index
-                  ? '#52dfca' : '#c4d1df',
-                border: `1px solid ${
-                  activeCriterion === index
-                    ? '#2dd4bf' : '#30435a'
-                }`,
-                borderRadius: 10,
-                padding: 18,
-                cursor: 'pointer',
-                font: 'inherit',
-              }}
-            >
-              <div style={{
-                fontSize: 11,
-                opacity: 0.7,
-                marginBottom: 10,
-              }}>
-                CRITÈRE 0{index + 1}
-              </div>
-              <strong>{item.title}</strong>
-            </button>
-          ))}
-        </div>
-
-        <div className="info-note" style={{
-          marginTop: 22,
-          padding: 22,
-        }}>
-          <strong>{criteria[activeCriterion].title}</strong>
-          <p style={{ marginBottom: 0, lineHeight: 1.8 }}>
-            {criteria[activeCriterion].description}
-          </p>
-          <p style={{
-            marginBottom: 0,
-            fontSize: 12,
-            color: '#2dd4bf',
-          }}>
-            Catégorie : {criteria[activeCriterion].importance}
-          </p>
-        </div>
-      </section>
-
-      <section className="panel" style={sectionStyle}>
-        <div className="panel-header">
-          <div>
-            <h2>Fiche d'évaluation d'un candidat</h2>
-            <p>
-              Structure prête à recevoir les métriques réelles.
-            </p>
-          </div>
-          <span className="panel-tag">NOTEBOOK 12</span>
-        </div>
-
-        <div style={{ marginTop: 24, marginBottom: 24 }}>
-          <label className="field-label" htmlFor="final-candidate">
-            Examiner un modèle candidat
-          </label>
-          <select
-            id="final-candidate"
-            className="bank-input"
-            style={{ maxWidth: 360 }}
-            value={candidate}
-            onChange={(event) => setCandidate(event.target.value)}
-          >
-            {candidates.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-          <p style={{
-            color: '#91a5bc',
-            fontSize: 12,
-          }}>
-            Cette sélection sert uniquement à explorer la fiche,
-            sans désigner le modèle final.
-          </p>
-        </div>
-
-        <h2 style={{ color: '#2dd4bf' }}>{candidate}</h2>
-
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>INDICATEUR</th>
-                <th>DESCRIPTION</th>
-                <th>VALEUR</th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparisonFields.map(([label, description]) => (
-                <tr key={label}>
-                  <td style={{
-                    color: '#e3edf6',
-                    fontWeight: 600,
-                  }}>
-                    {label}
-                  </td>
-                  <td>{description}</td>
-                  <td style={{
-                    color: '#fbbf24',
-                    whiteSpace: 'nowrap',
-                  }}>
-                    À intégrer
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="info-note">
-          Aucune métrique réelle n'est encore importée.
-          Les valeurs devront provenir de résultats expérimentaux
-          vérifiés et d'un protocole documenté.
-        </div>
-      </section>
-
-      <section className="panel" style={sectionStyle}>
-        <div className="panel-header">
-          <div>
-            <h2>Décision et justification</h2>
-            <p>
-              Documentation de la sélection du modèle final.
-            </p>
-          </div>
-          <span className="panel-tag">PENDING REVIEW</span>
-        </div>
-
-        <div style={{
-          background: '#101c30',
-          border: '1px dashed #38516b',
-          borderRadius: 12,
-          padding: 28,
-          marginTop: 24,
-          lineHeight: 1.9,
-          color: '#a9bdcf',
-        }}>
-          <strong style={{ color: '#edf4fc' }}>
-            Justification scientifique à compléter
-          </strong>
-          <p>
-            La décision devra expliquer pourquoi le modèle retenu
-            présente le meilleur compromis entre capacité de
-            détection des fraudes, robustesse aux attaques
-            adversariales, efficacité de la défense
-            et coût computationnel.
-          </p>
-          <p style={{ marginBottom: 0 }}>
-            Cette section sera remplie uniquement après
-            l'analyse finale des expériences.
-          </p>
-        </div>
-      </section>
-
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>État du déploiement</h2>
-            <p>
-              Préparation de l'intégration du modèle dans FastAPI.
-            </p>
-          </div>
-          <span className="panel-tag">DEPLOYMENT STATUS</span>
-        </div>
-
-        <div className="system-row">
-          <span>Interface React</span>
-          <strong className="text-green">Disponible</strong>
-        </div>
-        <div className="system-row">
-          <span>Modèle final sélectionné</span>
-          <strong className="text-amber">En attente</strong>
-        </div>
-        <div className="system-row">
-          <span>API FastAPI</span>
-          <strong className="text-amber">Non connectée</strong>
-        </div>
-        <div className="system-row">
-          <span>Service de prédiction réel</span>
-          <strong className="text-amber">Non disponible</strong>
-        </div>
-        <div className="system-row">
-          <span>Validation de bout en bout</span>
-          <strong className="text-amber">À effectuer</strong>
-        </div>
-
-        <div className="info-note" style={{ marginTop: 24 }}>
-          Cette version est une interface de démonstration.
-          Aucune décision bancaire réelle ne doit être fondée
-          sur les résultats simulés.
-        </div>
-      </section>
+            {data.hybrid_check && data.hybrid_check.limitations.length > 0 && (
+              <section className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h2>Limites méthodologiques</h2>
+                    <p>Déclarées dans les notebooks.</p>
+                  </div>
+                </div>
+                <ul style={{ color: '#a4b9cd', lineHeight: 1.9, paddingLeft: 20 }}>
+                  {data.hybrid_check.limitations.map((limit) => (
+                    <li key={limit}>{limit}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
+        )}
+      </DataState>
     </main>
   )
 }

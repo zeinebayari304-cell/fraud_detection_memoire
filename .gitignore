@@ -13,3 +13,5 @@ results/synthetic/
 
 data/processed/
 results/synthetic/
+backend/data/
+!docs/test_files/*.csv

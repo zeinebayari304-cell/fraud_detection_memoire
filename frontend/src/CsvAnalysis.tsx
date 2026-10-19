@@ -1,5 +1,14 @@
 
 import { useRef, useState, type ChangeEvent } from 'react'
+import { predictFile } from './api'
+
+const modelOptions = [
+  'Random Forest',
+  'XGBoost',
+  'LightGBM',
+  'SVM linéaire',
+  'Régression logistique',
+]
 
 const requiredColumns = [
   'Time',
@@ -17,8 +26,6 @@ type AnalysisRow = {
 }
 
 type Filter = 'Toutes' | 'Normale' | 'Fraude suspectée'
-
-const mockScores = [12, 91, 24, 86, 8, 67, 16, 95, 33, 78]
 
 function parseCsv(text: string): string[][] {
   const rows: string[][] = []
@@ -64,6 +71,9 @@ export default function CsvAnalysis() {
   const fileInput = useRef<HTMLInputElement>(null)
 
   const [filename, setFilename] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [model, setModel] = useState('Random Forest')
+  const [analyzing, setAnalyzing] = useState(false)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [results, setResults] = useState<AnalysisRow[]>([])
   const [filter, setFilter] = useState<Filter>('Toutes')
@@ -76,6 +86,7 @@ export default function CsvAnalysis() {
 
     setError('')
     setFilename('')
+    setFile(null)
     setTransactions([])
     setResults([])
     setFilter('Toutes')
@@ -153,6 +164,7 @@ export default function CsvAnalysis() {
 
       setTransactions(parsedTransactions)
       setFilename(file.name)
+      setFile(file)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Erreur de lecture CSV.'
@@ -167,24 +179,38 @@ export default function CsvAnalysis() {
     event.target.value = ''
   }
 
-  const analyzeBatch = () => {
-    // Scores prédéfinis : ils ne proviennent pas des données du fichier.
-    // Aucun modèle Machine Learning n'est exécuté ici.
-    const simulated = transactions.map((transaction, index) => {
-      const risk = mockScores[index % mockScores.length]
+  const analyzeBatch = async () => {
+    if (!file) return
 
-      return {
-        index: index + 1,
-        transaction,
-        risk,
-        prediction: risk >= 50
-          ? 'Fraude suspectée'
-          : 'Normale',
-      } as AnalysisRow
-    })
+    setAnalyzing(true)
+    setError('')
 
-    setResults(simulated)
-    setFilter('Toutes')
+    try {
+      const response = await predictFile(file, model)
+
+      if (response.rows.length !== transactions.length) {
+        throw new Error(
+          'Le serveur a renvoyé un nombre de résultats inattendu.'
+        )
+      }
+
+      setResults(
+        response.rows.map((row, index) => ({
+          index: row.index,
+          transaction: transactions[index],
+          risk: row.risk_score,
+          prediction: row.is_fraud ? 'Fraude suspectée' : 'Normale',
+        }))
+      )
+      setFilter('Toutes')
+    } catch (err) {
+      setResults([])
+      setError(
+        err instanceof Error ? err.message : "Erreur d'analyse."
+      )
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   const exportResults = () => {
@@ -193,8 +219,8 @@ export default function CsvAnalysis() {
     const columns = [
       'Transaction_ID',
       ...requiredColumns,
-      'Prediction_demo',
-      'Risk_score_demo',
+      'Prediction',
+      'Risk_score',
     ]
 
     const escapeCsv = (value: string | number) => {
@@ -224,7 +250,7 @@ export default function CsvAnalysis() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'fraudshield_demo_results.csv'
+    link.download = 'fraudshield_resultats.csv'
     document.body.appendChild(link)
     link.click()
     link.remove()
@@ -255,7 +281,7 @@ export default function CsvAnalysis() {
             Analyse par lots de transactions bancaires.
           </p>
         </div>
-        <span className="dataset-label">MODE DÉMO</span>
+        <span className="dataset-label">MODÈLE ENTRAÎNÉ</span>
       </div>
 
       <section className="panel">
@@ -338,18 +364,37 @@ export default function CsvAnalysis() {
             </article>
           </div>
 
-          <button
-            type="button"
-            className="bank-button primary"
-            onClick={analyzeBatch}
+          <label
+            className="field-label"
+            htmlFor="csv-model"
+            style={{ display: 'block', marginTop: 25 }}
           >
-            Lancer l'analyse simulée →
-          </button>
+            Modèle utilisé
+          </label>
+          <select
+            id="csv-model"
+            className="bank-input"
+            value={model}
+            onChange={(e) => {
+              setModel(e.target.value)
+              setResults([])
+            }}
+            style={{ maxWidth: 320, marginBottom: 20 }}
+          >
+            {modelOptions.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
 
-          <div className="info-note">
-            Les scores utilisés pour cette démonstration sont
-            prédéfinis et indépendants des transactions importées.
-            Il ne s'agit pas de prédictions réelles.
+          <div>
+            <button
+              type="button"
+              className="bank-button primary"
+              disabled={analyzing}
+              onClick={() => void analyzeBatch()}
+            >
+              {analyzing ? 'Analyse en cours...' : "Lancer l'analyse →"}
+            </button>
           </div>
 
           <h2 style={{ marginTop: 30 }}>
@@ -388,10 +433,10 @@ export default function CsvAnalysis() {
         <section className="panel" style={sectionStyle}>
           <div className="panel-header">
             <div>
-              <h2>Résultats de l'analyse simulée</h2>
-              <p>Classification fictive des transactions importées.</p>
+              <h2>Résultats de l'analyse</h2>
+              <p>Classification des transactions importées ({model}).</p>
             </div>
-            <span className="panel-tag">SIMULATION</span>
+            <span className="panel-tag">PRÉDICTION</span>
           </div>
 
           <div className="stats-grid" style={{ marginTop: 25 }}>
@@ -459,8 +504,8 @@ export default function CsvAnalysis() {
                 <tr>
                   <th>ID</th>
                   <th>MONTANT</th>
-                  <th>PRÉDICTION DÉMO</th>
-                  <th>SCORE DÉMO</th>
+                  <th>PRÉDICTION</th>
+                  <th>SCORE</th>
                   <th>RISQUE</th>
                 </tr>
               </thead>
@@ -495,8 +540,8 @@ export default function CsvAnalysis() {
           </div>
 
           <div className="info-note">
-            Résultats fictifs. La classification réelle sera
-            effectuée ultérieurement par FastAPI via POST /predict-file.
+            Résultats calculés par l'API FastAPI (POST /predict-file).
+            Le score est la probabilité de fraude estimée par le modèle.
           </div>
         </section>
       )}

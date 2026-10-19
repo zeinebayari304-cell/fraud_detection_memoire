@@ -1,6 +1,15 @@
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import './TransactionAnalysis.css'
+import {
+  fetchHealth,
+  predictAll,
+  predictTransaction,
+  type CompareResult,
+  type DatasetRow,
+  type Health,
+} from './api'
+import DatasetPanel from './DatasetPanel'
 
 type ModelName =
   | 'XGBoost'
@@ -13,6 +22,14 @@ type AnalysisResult = {
   status: 'normal' | 'fraud'
   riskScore: number
   model: ModelName
+  riskLevel: string
+  threshold: number
+}
+
+type DatasetSource = {
+  id: number
+  label: 0 | 1
+  split: string
 }
 
 const features = Array.from(
@@ -21,8 +38,8 @@ const features = Array.from(
 )
 
 const models: ModelName[] = [
-  'XGBoost',
   'Random Forest',
+  'XGBoost',
   'LightGBM',
   'SVM linéaire',
   'Régression logistique',
@@ -34,24 +51,31 @@ const initialValues: Record<string, string> = {
   ...Object.fromEntries(features.map((feature) => [feature, ''])),
 }
 
-// Réponses fictives uniquement.
-// Aucun algorithme ML n'est exécuté dans React.
-const demoResponses: AnalysisResult[] = [
-  { status: 'normal', riskScore: 12, model: 'XGBoost' },
-  { status: 'fraud', riskScore: 92, model: 'XGBoost' },
-  { status: 'normal', riskScore: 24, model: 'XGBoost' },
-  { status: 'fraud', riskScore: 86, model: 'XGBoost' },
-]
-
 export default function TransactionAnalysis() {
   const [values, setValues] = useState<Record<string, string>>(
     initialValues
   )
-  const [model, setModel] = useState<ModelName>('XGBoost')
+  const [model, setModel] = useState<ModelName>('Random Forest')
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [demoIndex, setDemoIndex] = useState(0)
+  const [health, setHealth] = useState<Health | null>(null)
+  const [backendDown, setBackendDown] = useState(false)
+  const [source, setSource] = useState<DatasetSource | null>(null)
+  const [compare, setCompare] = useState<CompareResult | null>(null)
+  const [comparing, setComparing] = useState(false)
+
+  useEffect(() => {
+    fetchHealth()
+      .then((data) => {
+        setHealth(data)
+        setBackendDown(false)
+      })
+      .catch(() => setBackendDown(true))
+  }, [])
+
+  const isLoaded = (name: string) =>
+    health?.models.find((item) => item.name === name)?.loaded ?? false
 
   const updateField = (field: string, value: string) => {
     setValues((previous) => ({
@@ -59,10 +83,66 @@ export default function TransactionAnalysis() {
       [field]: value,
     }))
     setResult(null)
+    setCompare(null)
+    setSource(null)
     setError('')
   }
 
+  // Remplit le formulaire avec une vraie transaction du jeu de données.
+  const loadFromDataset = (row: DatasetRow) => {
+    if (!row.features) return
+
+    setValues(
+      Object.fromEntries(
+        Object.entries(row.features).map(([key, value]) => [
+          key,
+          String(value),
+        ])
+      )
+    )
+    setSource({ id: row.id, label: row.label, split: row.split })
+    setResult(null)
+    setCompare(null)
+    setError('')
+  }
+
+  const numericFeatures = () =>
+    Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [key, Number(value)])
+    )
+
+  const formProblem = () => {
+    const invalid = Object.values(values).some(
+      (value) => value.trim() === '' || !Number.isFinite(Number(value))
+    )
+    if (invalid) return 'Veuillez remplir les 30 caractéristiques numériques.'
+    if (Number(values.Amount) < 0 || Number(values.Time) < 0) {
+      return 'Time et Amount doivent être positifs ou nuls.'
+    }
+    return ''
+  }
+
+  const compareAll = async () => {
+    const problem = formProblem()
+    if (problem) {
+      setError(problem)
+      return
+    }
+
+    setComparing(true)
+    setError('')
+    try {
+      setCompare(await predictAll(numericFeatures()))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur de comparaison.')
+    } finally {
+      setComparing(false)
+    }
+  }
+
   const fillExample = () => {
+    setSource(null)
+    setCompare(null)
     setValues({
       Time: '406',
       Amount: '149.62',
@@ -77,54 +157,51 @@ export default function TransactionAnalysis() {
     setError('')
   }
 
-  const analyze = (event: FormEvent<HTMLFormElement>) => {
+  const analyze = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const invalid = Object.entries(values).some(
-      ([, value]) => value.trim() === '' ||
-        !Number.isFinite(Number(value))
-    )
+    const problem = formProblem()
 
-    if (invalid) {
-      setError('Veuillez remplir les 30 caractéristiques numériques.')
+    if (problem) {
+      setError(problem)
       setResult(null)
       return
     }
 
-    if (Number(values.Amount) < 0 || Number(values.Time) < 0) {
-      setError('Time et Amount doivent être positifs ou nuls.')
-      setResult(null)
-      return
-    }
-
-    // Séquence de réponses de démonstration.
-    // Les champs saisis ne déterminent pas ce résultat.
     setLoading(true)
     setError('')
     setResult(null)
+    setCompare(null)
 
-    const response = demoResponses[
-      demoIndex % demoResponses.length
-    ]
+    try {
+      const prediction = await predictTransaction(model, numericFeatures())
 
-    setResult({ ...response, model })
-    setDemoIndex((previous) => previous + 1)
-    setLoading(false)
+      setResult({
+        status: prediction.is_fraud ? 'fraud' : 'normal',
+        riskScore: prediction.risk_score,
+        model: prediction.model as ModelName,
+        riskLevel: prediction.risk_level,
+        threshold: prediction.threshold,
+      })
+      setBackendDown(false)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Erreur d'analyse."
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   const reset = () => {
     setValues({ ...initialValues })
     setResult(null)
+    setCompare(null)
+    setSource(null)
     setError('')
   }
 
-  const riskLevel = result
-    ? result.riskScore >= 75
-      ? 'Élevé'
-      : result.riskScore >= 40
-        ? 'Moyen'
-        : 'Faible'
-    : ''
+  const riskLevel = result?.riskLevel ?? ''
 
   return (
     <main className="dashboard transaction-page">
@@ -139,9 +216,11 @@ export default function TransactionAnalysis() {
           </p>
         </div>
         <span className="dataset-label">
-          Données et résultats fictifs
+          Prédiction par modèle entraîné
         </span>
       </div>
+
+      <DatasetPanel selectedId={source?.id ?? null} onUse={loadFromDataset} />
 
       <div className="transaction-grid">
         <form className="panel transaction-form" onSubmit={analyze}>
@@ -153,10 +232,21 @@ export default function TransactionAnalysis() {
             <span className="panel-tag">30 variables</span>
           </div>
 
+          {source && (
+            <div className="info-note" style={{ marginTop: 18 }}>
+              Transaction n° <strong>{source.id}</strong> du jeu de
+              données ({source.split}) — classe réelle :{' '}
+              <strong style={{ color: source.label === 1 ? '#fb7185' : '#34d399' }}>
+                {source.label === 1 ? 'fraude' : 'normale'}
+              </strong>
+              .
+            </div>
+          )}
+
           <div className="form-section">
             <h3>01 / Modèle de classification</h3>
             <label className="field-label" htmlFor="model">
-              Modèle à simuler
+              Modèle utilisé
             </label>
             <select
               id="model"
@@ -170,11 +260,16 @@ export default function TransactionAnalysis() {
               {models.map((item) => (
                 <option key={item} value={item}>
                   {item}
+                  {health && !isLoaded(item) ? ' (non chargé)' : ''}
                 </option>
               ))}
             </select>
             <p className="field-help">
-              Aucun modèle réel n'est encore connecté.
+              {backendDown
+                ? "Backend injoignable : démarrez l'API FastAPI."
+                : health && !isLoaded(model)
+                  ? "Ce modèle n'est pas chargé côté serveur."
+                  : 'Random Forest : modèle final retenu dans le mémoire.'}
             </p>
           </div>
 
@@ -271,11 +366,20 @@ export default function TransactionAnalysis() {
                 <h2>Résultat de l'analyse</h2>
                 <p>Évaluation du niveau de risque</p>
               </div>
-              <span className="panel-tag">Simulation</span>
+              <span className="panel-tag">Prédiction</span>
             </div>
 
             {result ? (
               <div className="result-content">
+                {result.status === 'fraud' && (
+                  <div className="analysis-error" role="alert" style={{ marginBottom: 18 }}>
+                    <strong>⚠ Alerte de fraude</strong> — score{' '}
+                    {result.riskScore} % ≥ seuil{' '}
+                    {Math.round(result.threshold * 100)} %. Cette
+                    transaction doit être vérifiée.
+                  </div>
+                )}
+
                 <div className={`result-emblem ${result.status}`}>
                   {result.status === 'fraud' ? '!' : '✓'}
                 </div>
@@ -289,7 +393,7 @@ export default function TransactionAnalysis() {
                   {result.riskScore}%
                 </div>
                 <p className="field-help">
-                  Indicateur de risque simulé, non calibré
+                  Probabilité de fraude estimée par le modèle
                 </p>
 
                 <div className="result-track">
@@ -305,14 +409,90 @@ export default function TransactionAnalysis() {
                 </div>
 
                 <div className="result-detail">
-                  <span>Modèle affiché</span>
+                  <span>Modèle utilisé</span>
                   <strong>{result.model}</strong>
                 </div>
 
+                <div className="result-detail">
+                  <span>Seuil de décision</span>
+                  <strong>{Math.round(result.threshold * 100)} %</strong>
+                </div>
+
+                {source && (
+                  <div className="result-detail">
+                    <span>Classe réelle (jeu de données)</span>
+                    <strong style={{
+                      color:
+                        (source.label === 1) === (result.status === 'fraud')
+                          ? '#34d399'
+                          : '#fb7185',
+                    }}>
+                      {source.label === 1 ? 'Fraude' : 'Normale'} —{' '}
+                      {(source.label === 1) === (result.status === 'fraud')
+                        ? 'prédiction correcte'
+                        : source.label === 1
+                          ? 'fraude manquée (faux négatif)'
+                          : 'fausse alerte (faux positif)'}
+                    </strong>
+                  </div>
+                )}
+
+                <div style={{ marginTop: 18 }}>
+                  <button
+                    type="button"
+                    className="bank-button secondary"
+                    disabled={comparing}
+                    onClick={() => void compareAll()}
+                  >
+                    {comparing ? 'Comparaison…' : 'Comparer tous les modèles'}
+                  </button>
+                </div>
+
+                {compare && (
+                  <div style={{ marginTop: 16 }}>
+                    <div className="table-wrapper">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>MODÈLE</th>
+                            <th>SCORE</th>
+                            <th>VERDICT</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {compare.results.map((item) => (
+                            <tr key={item.model}>
+                              <td>{item.model}</td>
+                              {item.loaded ? (
+                                <>
+                                  <td>{item.risk_score} %</td>
+                                  <td>
+                                    <span className={`risk-badge ${item.is_fraud ? 'high' : 'normal'}`}>
+                                      {item.is_fraud ? 'Fraude' : 'Normale'}
+                                    </span>
+                                  </td>
+                                </>
+                              ) : (
+                                <td colSpan={2} style={{ color: '#93a9c1' }}>
+                                  non chargé
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="field-help" style={{ marginTop: 10 }}>
+                      {compare.fraud_votes} modèle(s) sur{' '}
+                      {compare.models_scored} signalent une fraude.
+                    </p>
+                  </div>
+                )}
+
                 <div className="analysis-disclaimer">
-                  Démonstration uniquement : résultat issu d'une
-                  séquence prédéfinie, indépendant des valeurs saisies.
-                  Aucune prédiction bancaire réelle.
+                  Résultat d'un modèle de recherche (projet de fin
+                  d'études) : à utiliser comme aide à la décision,
+                  pas comme verdict définitif.
                 </div>
               </div>
             ) : (
@@ -331,20 +511,28 @@ export default function TransactionAnalysis() {
             <h2>Informations sur l'analyse</h2>
             <div className="system-row">
               <span>Source</span>
-              <strong>Mock data</strong>
+              <strong>POST /predict</strong>
             </div>
             <div className="system-row">
               <span>Backend</span>
-              <strong className="text-amber">Non connecté</strong>
+              <strong className={backendDown ? 'text-amber' : ''}>
+                {backendDown ? 'Non connecté' : health ? 'Connecté' : '…'}
+              </strong>
             </div>
             <div className="system-row">
               <span>Modèle final</span>
-              <strong className="text-amber">En attente</strong>
+              <strong
+                className={health?.models_ready ? '' : 'text-amber'}
+              >
+                {health?.models_ready ? 'Chargé' : 'En attente'}
+              </strong>
             </div>
-            <div className="info-note">
-              Cette interface sera connectée à POST /predict
-              lorsque le backend FastAPI sera disponible.
-            </div>
+            {health && !health.models_ready && (
+              <div className="info-note">
+                Fichiers du modèle absents : déposez les .joblib dans
+                le dossier models/ puis redémarrez l'API.
+              </div>
+            )}
           </article>
         </section>
       </div>
