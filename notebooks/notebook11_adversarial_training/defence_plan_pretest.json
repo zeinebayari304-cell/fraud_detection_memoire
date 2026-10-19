@@ -1,0 +1,32 @@
+{
+    "attack_plan": {
+        "XGBoost": [
+            "HSJ"
+        ],
+        "Random Forest": [
+            "HSJ"
+        ],
+        "LightGBM": [
+            "HSJ"
+        ],
+        "SVM linéaire": [
+            "ZOO",
+            "HSJ"
+        ],
+        "Régression logistique": [
+            "ZOO",
+            "HSJ"
+        ]
+    },
+    "selection_rule": {
+        "primary_objective": "reduce_validation_ASR",
+        "max_clean_recall_drop": 0.05,
+        "max_clean_f1_drop": 0.05,
+        "test_used_for_selection": false
+    },
+    "adversarial_label": 1,
+    "training_source": "TRAIN_ONLY",
+    "validation_role": "DEFENCE_SELECTION_ONLY",
+    "test_role": "FINAL_EVALUATION_ONLY",
+    "old_test_adversarial_examples_used_for_training": false
+}

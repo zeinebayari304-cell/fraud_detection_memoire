@@ -1,0 +1,286 @@
+
+.transaction-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.transaction-form,
+.result-column {
+  min-width: 0;
+}
+
+.result-column {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.form-section {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #2a3c54;
+}
+
+.form-section h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #52dbc8;
+  margin: 0 0 22px;
+}
+
+.field-label {
+  display: block;
+  color: #b7c6d6;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.bank-input {
+  width: 100%;
+  min-width: 0;
+  background: #0d192b;
+  border: 1px solid #31445e;
+  border-radius: 9px;
+  padding: 12px 13px;
+  color: #f1f5f9;
+  outline: none;
+  color-scheme: dark;
+}
+
+.bank-input:focus {
+  border-color: #2dd4bf;
+  box-shadow: 0 0 0 3px #2dd4bf18;
+}
+
+.form-two-columns,
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.feature-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.field-help {
+  font-size: 12px;
+  color: #8da3bc;
+  line-height: 1.6;
+  margin: 9px 0 18px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.bank-button {
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 13px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.bank-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.bank-button.primary {
+  background: #2dd4bf;
+  color: #082027;
+}
+
+.bank-button.primary:hover {
+  background: #5ce9d7;
+}
+
+.bank-button.secondary {
+  background: #20334a;
+  color: #d4e1ed;
+  border-color: #354b63;
+}
+
+.bank-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.analysis-error {
+  color: #fda4af;
+  background: #492532;
+  border: 1px solid #9d465a;
+  padding: 13px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+.analysis-result {
+  min-height: 410px;
+}
+
+.result-empty,
+.result-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 45px;
+}
+
+.result-empty-icon,
+.result-emblem {
+  width: 75px;
+  height: 75px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: #173b43;
+  color: #2dd4bf;
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+.result-empty h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.result-empty p {
+  max-width: 300px;
+  color: #8da3bc;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.result-emblem.fraud {
+  color: #fb7185;
+  background: #472637;
+}
+
+.result-emblem.normal {
+  color: #34d399;
+  background: #173d35;
+}
+
+.result-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.result-label.fraud {
+  color: #fb7185;
+}
+
+.result-label.normal {
+  color: #34d399;
+}
+
+.risk-number {
+  font-size: 52px;
+  font-weight: 800;
+  margin-top: 20px;
+  letter-spacing: -2px;
+}
+
+.result-track {
+  width: 100%;
+  background: #304158;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 20px;
+  margin: 20px 0;
+}
+
+.result-progress {
+  height: 100%;
+  border-radius: 20px;
+}
+
+.result-progress.fraud {
+  background: #fb7185;
+}
+
+.result-progress.normal {
+  background: #34d399;
+}
+
+.result-detail {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 15px;
+  border-bottom: 1px solid #293c54;
+  padding: 18px 0;
+  text-align: left;
+  font-size: 12px;
+}
+
+.result-detail span {
+  color: #8da3bc;
+}
+
+.analysis-disclaimer {
+  margin-top: 24px;
+  background: #203248;
+  color: #a9bed1;
+  padding: 16px;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.result-info h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+@media (max-width: 1100px) {
+  .transaction-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-two-columns {
+    grid-template-columns: 1fr;
+  }
+}
+/* Amélioration de la lisibilité des caractéristiques */
+
+.feature-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.feature-grid .bank-input {
+  width: 100%;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.feature-grid input::-webkit-inner-spin-button,
+.feature-grid input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}

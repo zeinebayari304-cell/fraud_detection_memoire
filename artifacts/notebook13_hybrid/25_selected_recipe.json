@@ -1,0 +1,54 @@
+{
+  "selected": "RF",
+  "component_order": [
+    "RF",
+    "XGB",
+    "LGBM"
+  ],
+  "weights": null,
+  "voting": "native",
+  "threshold": null,
+  "feature_order": [
+    "Time",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "Amount"
+  ],
+  "model_paths": {
+    "RF": "C:\\Users\\MSI\\Desktop\\fraud_detection_memoire\\notebooks\\notebook11_adversarial_training\\defence_v2\\final_selected_models\\random_forest_selected.joblib",
+    "XGB": "C:\\Users\\MSI\\Desktop\\fraud_detection_memoire\\notebooks\\notebook11_adversarial_training\\defence_v2\\final_selected_models\\xgboost_selected.joblib",
+    "LGBM": "C:\\Users\\MSI\\Desktop\\fraud_detection_memoire\\notebooks\\notebook11_adversarial_training\\defence_v2\\final_selected_models\\lightgbm_selected.joblib"
+  },
+  "model_sha256": {
+    "RF": "83753dc0f6b79d9f23228b94ddc693315a968ca2269eab4d1f6ba38b8a9de781",
+    "XGB": "e09467e2ce6dc67ee221821f1b393630fa9ee382a050f5a749f655bb8a0cdba8",
+    "LGBM": "e02ddba89ade0f93f9eec537676569ecf7125bde9bd04c3358d3a6590778dd09"
+  },
+  "protocol_id": "641c8a79fdca0e2a29c126111e373a5a0fdaa95b9c151d8f042374c5d6cbce3b"
+}

@@ -1,0 +1,251 @@
+
+import './App.css'
+
+const navigation = [
+  { icon: '▦', label: 'Tableau de bord', active: true },
+  { icon: '◎', label: 'Analyse de transaction' },
+  { icon: '▤', label: 'Analyse CSV' },
+  { icon: '◫', label: 'Comparaison des modèles' },
+  { icon: '◇', label: 'Robustesse adversariale' },
+  { icon: '◈', label: 'Adversarial Training' },
+  { icon: '★', label: 'Modèle final' },
+]
+
+const statistics = [
+  {
+    label: 'Transactions analysées',
+    value: '284 807',
+    icon: '▤',
+    detail: 'Volume total de la démonstration',
+    color: 'cyan',
+  },
+  {
+    label: 'Fraudes suspectées',
+    value: '492',
+    icon: '⚑',
+    detail: 'Transactions signalées',
+    color: 'red',
+  },
+  {
+    label: 'Taux de fraude',
+    value: '0,173 %',
+    icon: '%',
+    detail: 'Sur l’ensemble des transactions',
+    color: 'amber',
+  },
+  {
+    label: 'Transactions normales',
+    value: '284 315',
+    icon: '✓',
+    detail: 'Transactions non signalées',
+    color: 'green',
+  },
+]
+
+const activity = [42, 61, 49, 77, 65, 91, 73]
+
+const alerts = [
+  { id: 'TX-90241', amount: '2 450,00 €', risk: 96, status: 'Élevé' },
+  { id: 'TX-90242', amount: '890,50 €', risk: 88, status: 'Élevé' },
+  { id: 'TX-90243', amount: '320,00 €', risk: 67, status: 'Moyen' },
+  { id: 'TX-90244', amount: '1 180,00 €', risk: 92, status: 'Élevé' },
+]
+
+function App() {
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-icon">⬡</div>
+          <div>
+            <strong>FraudShield <span>AI</span></strong>
+            <small>FRAUD INTELLIGENCE</small>
+          </div>
+        </div>
+
+        <div className="navigation-title">ESPACE DE TRAVAIL</div>
+
+        <nav className="navigation">
+          {navigation.map((item) => (
+            <div
+              key={item.label}
+              className={`nav-item ${item.active ? 'active' : ''}`}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom">
+          <div className="system-status">
+            <span className="status-dot"></span>
+            Interface de démonstration
+          </div>
+          <small>FraudShield AI · Version 0.1</small>
+        </div>
+      </aside>
+
+      <div className="main-area">
+        <header className="topbar">
+          <div className="breadcrumb">
+            Plateforme <span>/</span> Tableau de bord
+          </div>
+          <div className="topbar-right">
+            <span className="demo-badge">● MODE DÉMO</span>
+            <div className="avatar">FS</div>
+          </div>
+        </header>
+
+        <main className="dashboard">
+          <div className="page-heading">
+            <div>
+              <div className="eyebrow">FRAUD MONITORING / OVERVIEW</div>
+              <h1>Tableau de bord</h1>
+              <p>
+                Vue globale des transactions et de la surveillance antifraude.
+              </p>
+            </div>
+            <span className="dataset-label">Données fictives</span>
+          </div>
+
+          <section className="stats-grid">
+            {statistics.map((stat) => (
+              <article className="stat-card" key={stat.label}>
+                <div className="stat-top">
+                  <span>{stat.label}</span>
+                  <div className={`stat-icon ${stat.color}`}>
+                    {stat.icon}
+                  </div>
+                </div>
+                <div className="stat-value">{stat.value}</div>
+                <p>{stat.detail}</p>
+              </article>
+            ))}
+          </section>
+
+          <section className="content-grid">
+            <article className="panel">
+              <div className="panel-header">
+                <div>
+                  <h2>Activité des transactions</h2>
+                  <p>Évolution simulée sur les 7 derniers jours</p>
+                </div>
+                <span className="panel-tag">7 jours</span>
+              </div>
+
+              <div className="chart">
+                {activity.map((value, index) => (
+                  <div className="chart-column" key={index}>
+                    <div className="bar-track">
+                      <div
+                        className="bar"
+                        style={{ height: `${value}%` }}
+                      ></div>
+                    </div>
+                    <span>
+                      {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'][index]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="chart-legend">
+                <span className="legend-dot"></span>
+                Volume relatif des transactions
+              </div>
+            </article>
+
+            <article className="panel">
+              <div className="panel-header">
+                <div>
+                  <h2>État du système</h2>
+                  <p>Configuration actuelle</p>
+                </div>
+              </div>
+
+              <div className="system-row">
+                <span>Interface frontend</span>
+                <strong className="text-green">Opérationnelle</strong>
+              </div>
+              <div className="system-row">
+                <span>Source des données</span>
+                <strong>Simulation</strong>
+              </div>
+              <div className="system-row">
+                <span>Backend FastAPI</span>
+                <strong className="text-amber">Non connecté</strong>
+              </div>
+              <div className="system-row">
+                <span>Modèle final</span>
+                <strong className="text-amber">En attente</strong>
+              </div>
+
+              <div className="info-note">
+                Les modèles ML et leurs résultats réels seront intégrés
+                après validation des expérimentations.
+              </div>
+            </article>
+          </section>
+
+          <section className="panel alerts-panel">
+            <div className="panel-header">
+              <div>
+                <h2>Dernières alertes de fraude</h2>
+                <p>Transactions fictives signalées comme suspectes</p>
+              </div>
+              <span className="panel-tag">4 alertes</span>
+            </div>
+
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>TRANSACTION</th>
+                    <th>MONTANT</th>
+                    <th>SCORE DE RISQUE</th>
+                    <th>NIVEAU</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {alerts.map((alert) => (
+                    <tr key={alert.id}>
+                      <td className="transaction-id">{alert.id}</td>
+                      <td>{alert.amount}</td>
+                      <td>
+                        <div className="risk-cell">
+                          <div className="risk-track">
+                            <div
+                              className="risk-fill"
+                              style={{ width: `${alert.risk}%` }}
+                            ></div>
+                          </div>
+                          <span>{alert.risk}%</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span
+                          className={`risk-badge ${
+                            alert.status === 'Élevé' ? 'high' : 'medium'
+                          }`}
+                        >
+                          {alert.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <footer className="footer">
+            FraudShield AI · Plateforme de démonstration académique
+            <span>Les indicateurs affichés sont fictifs.</span>
+          </footer>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+export default App

@@ -1,0 +1,51 @@
+{
+    "notebook": 10,
+    "models": [
+        "XGBoost",
+        "Random Forest",
+        "LightGBM",
+        "SVM linéaire",
+        "Régression logistique"
+    ],
+    "attacks": [
+        "ZOO",
+        "HopSkipJump"
+    ],
+    "test_common_frauds": 53,
+    "hsj_local_linf_threshold": 0.05,
+    "hsj_mutable_features": [
+        "V1",
+        "V2",
+        "V3",
+        "V4",
+        "V5",
+        "V6",
+        "V7",
+        "V8",
+        "V9",
+        "V10",
+        "V11",
+        "V12",
+        "V13",
+        "V14",
+        "V15",
+        "V16",
+        "V17",
+        "V18",
+        "V19",
+        "V20",
+        "V21",
+        "V22",
+        "V23",
+        "V24",
+        "V25",
+        "V26",
+        "V27",
+        "V28"
+    ],
+    "hsj_immutable_features": [
+        "Time",
+        "Amount"
+    ],
+    "important_note": "Les transactions adversariales du Test sont réservées exclusivement à l'évaluation. Elles ne doivent jamais être utilisées pour l'adversarial training du Notebook 11."
+}

@@ -1,0 +1,29 @@
+
+NOTEBOOK 11 — NOTE MÉTHODOLOGIQUE FINALE
+
+1. Les modèles sélectionnés avant l'évaluation finale sont :
+   - Régression logistique : V2
+   - SVM linéaire : V2
+   - Random Forest : V1
+   - XGBoost : V1
+   - LightGBM : V1
+
+2. Le TEST n'a pas été utilisé pour entraîner ou sélectionner
+   les versions défendues.
+
+3. HSJ :
+   - évaluation locale principale sur 53 fraudes communes ;
+   - contrainte Linf <= 0.05 ;
+   - Time et Amount conservées ;
+   - les cinq modèles sont évalués.
+
+4. ZOO :
+   - évaluation finale ciblée sur LR V2 et SVM V2 ;
+   - l'ASR brut correspond au succès sans contrainte epsilon ;
+   - ZOO_Local_005 correspond uniquement à une analyse
+     post-hoc des attaques générées ;
+   - il ne faut PAS présenter cette mesure comme une attaque
+     ZOO explicitement contrainte par epsilon = 0.05.
+
+5. Aucun modèle final unique n'est choisi dans le Notebook 11.
+   Cette décision est réservée au Notebook 12.

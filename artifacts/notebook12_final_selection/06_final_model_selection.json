@@ -1,0 +1,40 @@
+{
+    "notebook": "12_final_model_selection",
+    "selection_dataset": "Validation",
+    "selection_rule": "Pareto-efficient candidates, then highest balanced Primary_Score; tie-breaks AP then MCC",
+    "native_decision_rule": true,
+    "threshold_optimized_in_notebook12": false,
+    "model_retrained_in_notebook12": false,
+    "test_used_to_rank_models_in_notebook12": false,
+    "primary_criteria": [
+        "AP",
+        "F1",
+        "Recall",
+        "HSJ_Robustness"
+    ],
+    "primary_weights": {
+        "AP": 0.25,
+        "F1": 0.25,
+        "Recall": 0.25,
+        "HSJ_Robustness": 0.25
+    },
+    "selected_model": "Random Forest",
+    "defense_version": "V1",
+    "primary_score": 0.8295097513022722,
+    "pareto_efficient": true,
+    "near_tie_under_1_percent": true,
+    "relative_gap_to_second": 0.004367703273363102,
+    "scenario_first_place_count": 3,
+    "scenario_count": 3,
+    "stability_label": "stable_dans_tous_les_scenarios",
+    "validation_metrics": {
+        "AP": 0.8536964613965956,
+        "Precision": 0.9166666666666666,
+        "Recall": 0.7746478873239436,
+        "F1": 0.8396946564885496,
+        "MCC": 0.8424336344272063,
+        "ROC_AUC": 0.9616562820720217,
+        "HSJ_ASR": 0.15,
+        "HSJ_Robustness": 0.85
+    }
+}

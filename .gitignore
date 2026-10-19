@@ -1,0 +1,15 @@
+﻿.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.ipynb_checkpoints/
+*.pkl
+*.joblib
+*.csv
+
+data/processed/
+results/synthetic/
+
+data/processed/
+results/synthetic/

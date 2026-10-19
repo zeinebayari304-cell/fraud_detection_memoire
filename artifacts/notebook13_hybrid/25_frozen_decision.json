@@ -1,0 +1,9 @@
+{
+  "selected": "RF",
+  "best_hybrid": "SoftWeighted",
+  "relative_gain": -0.004808252218325834,
+  "dominates_RF": false,
+  "reason": "parsimony",
+  "protocol_id": "641c8a79fdca0e2a29c126111e373a5a0fdaa95b9c151d8f042374c5d6cbce3b",
+  "exploratory": true
+}

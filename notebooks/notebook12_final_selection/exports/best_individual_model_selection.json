@@ -1,0 +1,16 @@
+{
+    "Selection_Type": "Best individual fraud-detection model",
+    "Selected_Model": "Random Forest",
+    "Selected_Version": "V1",
+    "Runner_Up": "LightGBM",
+    "Selection_Data": "Validation",
+    "Test_Used_For_Selection": false,
+    "Selection_Objective": "Prioritize adversarial robustness, limit false alerts, and maintain strong fraud detection.",
+    "Criteria_Weights": {
+        "HSJ_Local_Robustness": 0.4,
+        "Precision": 0.25,
+        "Average_Precision": 0.2,
+        "Recall": 0.15
+    },
+    "Pareto_Optimal": true
+}

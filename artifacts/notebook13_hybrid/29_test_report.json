@@ -1,0 +1,21 @@
+{
+  "selected": "RF",
+  "historical_panel_n": 53,
+  "clean_misses": 0,
+  "eligible_n": 53,
+  "test_hashes": {
+    "X": "91baa83527cadc64af999092910a5d006ebac9ea4bc04d943f6e515b34b5e026",
+    "y": "0fe8692bef3c7cdbee1a36d85a5407806aa085f0efa795670c228cdf18b84c62"
+  },
+  "protocol_source": "NB11_historical_details",
+  "history_note": "NB11 réutilisé ; provenance par fichier et panel, distances vérifiées. Identité des anciens modèles/données non certifiée par empreintes historiques. Requêtes et temps non récupérés : zéros techniques à ne pas interpréter comme coût nul.",
+  "complete": true,
+  "ASR": 0.05660377358490566,
+  "HSJ_Resistance": 0.9433962264150944,
+  "evaluated": 53,
+  "unknown": 0,
+  "local_successes": 3,
+  "Panel_Detection_Lower": 0.9433962264150944,
+  "Panel_Detection_Upper": 0.9433962264150944,
+  "Panel_Detection_After_Attack": 0.9433962264150944
+}

@@ -1,0 +1,34 @@
+{
+    "selected_model": "Random Forest",
+    "defense_version": "V1",
+    "validation": {
+        "AP": 0.8536964613965956,
+        "Precision": 0.9166666666666666,
+        "Recall": 0.7746478873239436,
+        "F1": 0.8396946564885496,
+        "MCC": 0.8424336344272063,
+        "HSJ_ASR": 0.15,
+        "HSJ_Robustness": 0.85,
+        "Primary_Score": 0.8295097513022722
+    },
+    "test_clean": {
+        "AP": 0.8188709529688145,
+        "Precision": 0.8888888888888888,
+        "Recall": 0.7887323943661971,
+        "F1": 0.835820895522388,
+        "MCC": 0.8370607330965177,
+        "FP": 7,
+        "FN": 15,
+        "TP": 56
+    },
+    "test_hsj": {
+        "ASR": 0.05660377358490566,
+        "Robustness": 0.9433962264150944,
+        "source": "c:\\Users\\MSI\\Desktop\\fraud_detection_memoire\\notebooks\\notebook11_adversarial_training\\defence_v2\\final_selected_models\\selected_models_hsj_test_summary.csv"
+    },
+    "selection_diagnostics": {
+        "near_tie_under_1_percent": true,
+        "relative_gap_to_second": 0.004367703273363102,
+        "stability_label": "stable_dans_tous_les_scenarios"
+    }
+}

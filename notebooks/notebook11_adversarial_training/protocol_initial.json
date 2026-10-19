@@ -1,0 +1,58 @@
+{
+    "random_state": 2026,
+    "data_rule": {
+        "train": "generation + adversarial training",
+        "validation": "defence selection",
+        "test": "final evaluation only",
+        "test_used_for_training": false
+    },
+    "hsj": {
+        "local_eps": 0.05,
+        "mutable_features": [
+            "V1",
+            "V2",
+            "V3",
+            "V4",
+            "V5",
+            "V6",
+            "V7",
+            "V8",
+            "V9",
+            "V10",
+            "V11",
+            "V12",
+            "V13",
+            "V14",
+            "V15",
+            "V16",
+            "V17",
+            "V18",
+            "V19",
+            "V20",
+            "V21",
+            "V22",
+            "V23",
+            "V24",
+            "V25",
+            "V26",
+            "V27",
+            "V28"
+        ],
+        "immutable_features": [
+            "Time",
+            "Amount"
+        ],
+        "norm": "Linf",
+        "max_iter": 50,
+        "max_eval": 10000,
+        "init_eval": 100,
+        "init_size": 100
+    },
+    "zoo": {
+        "confidence": 0.5,
+        "learning_rate": 0.001,
+        "max_iter": 200,
+        "binary_search_steps": 10,
+        "initial_const": 0.001
+    }
+}

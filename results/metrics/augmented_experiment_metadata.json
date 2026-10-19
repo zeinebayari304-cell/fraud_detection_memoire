@@ -1,0 +1,14 @@
+{
+    "notebook": "09_augmented_models",
+    "augmentation_method": "SMOTE",
+    "fraud_normal_ratio": 0.1,
+    "synthetic_samples_added": 19497,
+    "real_train_samples": 198608,
+    "augmented_train_samples": 218105,
+    "test_samples": 42559,
+    "test_frauds": 71,
+    "test_normals": 42488,
+    "random_state": 42,
+    "selection_frozen_before_test": true,
+    "final_model_selected": false
+}

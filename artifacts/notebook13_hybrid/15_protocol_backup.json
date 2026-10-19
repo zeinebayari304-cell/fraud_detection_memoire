@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "seed": 2026,
+  "features": [
+    "Time",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "Amount"
+  ],
+  "model_hashes": {
+    "RF": "83753dc0f6b79d9f23228b94ddc693315a968ca2269eab4d1f6ba38b8a9de781",
+    "XGB": "e09467e2ce6dc67ee221821f1b393630fa9ee382a050f5a749f655bb8a0cdba8",
+    "LGBM": "e02ddba89ade0f93f9eec537676569ecf7125bde9bd04c3358d3a6590778dd09"
+  },
+  "model_versions": {
+    "RF": "V1",
+    "XGB": "V1",
+    "LGBM": "V1"
+  },
+  "versions": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "joblib": "1.6.0",
+    "adversarial-robustness-toolbox": "1.20.1",
+    "xgboost": "3.4.1",
+    "lightgbm": "4.7.0"
+  },
+  "input_hashes": {
+    "X_train": "a71cbf95ba0d5511ef01a7465fbc98fa127858bedb017de0e1326d53cdc8fb06",
+    "y_train": "1741bb3e8c99f8e602549cd6e7d817fbb5662c7e7fcb90c0b71aec0a3d218d01",
+    "X_val": "5b802061d2bca273706843e6eb4eb6a5faf2cd9c63c8416b1a32c04062ff3f7a",
+    "y_val": "8467b775aaef2969467910c630a2bb7f33ebccb6159cf84c0d31f5f8a244e456"
+  },
+  "weights": [
+    0.5,
+    0.3,
+    0.2
+  ],
+  "threshold": 0.5,
+  "epsilon": 0.05,
+  "immutable_tol": 1e-08,
+  "hsj": {
+    "targeted": true,
+    "norm": "inf",
+    "max_iter": 50,
+    "max_eval": 10000,
+    "init_eval": 100,
+    "init_size": 100,
+    "batch_size": 64,
+    "verbose": false
+  },
+  "max_seed_trials": 5000,
+  "val_panel": [
+    544,
+    666,
+    1899,
+    2897,
+    4127,
+    4775,
+    8418,
+    9179,
+    9888,
+    11066,
+    11324,
+    11695,
+    12246,
+    12521,
+    14382,
+    15814,
+    15912,
+    16048,
+    16641,
+    17312
+  ],
+  "primary_weights": {
+    "AP": 0.25,
+    "F1": 0.25,
+    "Recall": 0.25,
+    "HSJ_Resistance": 0.25
+  },
+  "min_relative_gain": 0.01,
+  "implementation_revision": "NB13-2026-10-19-v1",
+  "test_status": "already_seen_in_NB11_NB12_exploratory_extension"
+}

@@ -1,0 +1,285 @@
+
+import { useRef, useState, type ChangeEvent } from 'react'
+
+const requiredColumns = [
+  'Time',
+  ...Array.from({ length: 28 }, (_, i) => `V${i + 1}`),
+  'Amount',
+]
+
+type CsvPreview = {
+  filename: string
+  transactionCount: number
+  columns: string[]
+  rows: Record<string, string>[]
+}
+
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = []
+  let row: string[] = []
+  let value = ''
+  let inQuotes = false
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]
+
+    if (char === '"') {
+      if (inQuotes && text[i + 1] === '"') {
+        value += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(value.trim())
+      value = ''
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && text[i + 1] === '\n') i++
+      row.push(value.trim())
+      if (row.some((cell) => cell !== '')) rows.push(row)
+      row = []
+      value = ''
+    } else {
+      value += char
+    }
+  }
+
+  if (inQuotes) {
+    throw new Error('Le fichier CSV contient des guillemets non fermés.')
+  }
+
+  row.push(value.trim())
+  if (row.some((cell) => cell !== '')) rows.push(row)
+
+  return rows
+}
+
+export default function CsvAnalysis() {
+  const fileInput = useRef<HTMLInputElement>(null)
+  const [preview, setPreview] = useState<CsvPreview | null>(null)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [dragging, setDragging] = useState(false)
+
+  const loadFile = async (file?: File) => {
+    if (!file) return
+
+    setError('')
+    setPreview(null)
+
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setError('Veuillez sélectionner un fichier au format CSV.')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError(
+        'Cette première version accepte les fichiers de 5 Mo maximum.'
+      )
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const text = await file.text()
+      const parsed = parseCsv(text.replace(/^\uFEFF/, ''))
+
+      if (parsed.length < 2) {
+        throw new Error('Le fichier ne contient aucune transaction.')
+      }
+
+      const columns = parsed[0]
+      const missing = requiredColumns.filter(
+        (column) => !columns.includes(column)
+      )
+
+      if (missing.length > 0) {
+        throw new Error(
+          `Colonnes manquantes : ${missing.join(', ')}`
+        )
+      }
+
+      if (new Set(columns).size !== columns.length) {
+        throw new Error('Le fichier contient des colonnes dupliquées.')
+      }
+
+      const dataRows = parsed.slice(1)
+
+      if (dataRows.some((row) => row.length !== columns.length)) {
+        throw new Error(
+          'Certaines lignes ne possèdent pas le bon nombre de colonnes.'
+        )
+      }
+
+      const rows = dataRows.slice(0, 5).map((row) =>
+        Object.fromEntries(
+          columns.map((column, index) => [column, row[index]])
+        )
+      )
+
+      setPreview({
+        filename: file.name,
+        transactionCount: dataRows.length,
+        columns,
+        rows,
+      })
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Impossible de lire le fichier CSV.'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    void loadFile(event.target.files?.[0])
+    event.target.value = ''
+  }
+
+  return (
+    <main className="dashboard">
+      <div className="page-heading">
+        <div>
+          <div className="eyebrow">
+            FRAUD DETECTION / BATCH ANALYSIS
+          </div>
+          <h1>Analyse CSV</h1>
+          <p>
+            Importation et préparation de plusieurs transactions bancaires.
+          </p>
+        </div>
+        <span className="dataset-label">Mode démonstration</span>
+      </div>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h2>Importer des transactions</h2>
+            <p>Format attendu : CSV avec 30 caractéristiques numériques.</p>
+          </div>
+          <span className="panel-tag">CSV · 5 Mo max.</span>
+        </div>
+
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".csv,text/csv"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+
+        <div
+          onDragOver={(event) => {
+            event.preventDefault()
+            setDragging(true)
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(event) => {
+            event.preventDefault()
+            setDragging(false)
+            void loadFile(event.dataTransfer.files[0])
+          }}
+          style={{
+            marginTop: 25,
+            padding: 45,
+            textAlign: 'center',
+            border: `2px dashed ${dragging ? '#2dd4bf' : '#35506a'}`,
+            borderRadius: 14,
+            background: dragging ? '#173b43' : '#101c30',
+          }}
+        >
+          <div style={{ fontSize: 36, color: '#2dd4bf' }}>⇧</div>
+          <h2>Glissez votre fichier CSV ici</h2>
+          <p style={{ color: '#94a3b8' }}>
+            Ou sélectionnez un fichier depuis votre ordinateur.
+          </p>
+
+          <button
+            type="button"
+            className="bank-button primary"
+            onClick={() => fileInput.current?.click()}
+            disabled={loading}
+          >
+            {loading ? 'Lecture en cours...' : 'Choisir un fichier CSV'}
+          </button>
+        </div>
+
+        {error && (
+          <div className="analysis-error" role="alert">
+            {error}
+          </div>
+        )}
+      </section>
+
+      {preview && (
+        <section className="panel" style={{ marginTop: 22 }}>
+          <div className="panel-header">
+            <div>
+              <h2>Fichier importé avec succès</h2>
+              <p>{preview.filename}</p>
+            </div>
+            <span className="panel-tag">Fichier valide</span>
+          </div>
+
+          <div className="stats-grid" style={{ marginTop: 25 }}>
+            <article className="stat-card">
+              <div className="stat-top">Transactions importées</div>
+              <div className="stat-value">
+                {preview.transactionCount.toLocaleString('fr-FR')}
+              </div>
+            </article>
+
+            <article className="stat-card">
+              <div className="stat-top">Caractéristiques attendues</div>
+              <div className="stat-value">30</div>
+            </article>
+
+            <article className="stat-card">
+              <div className="stat-top">Colonnes du fichier</div>
+              <div className="stat-value">{preview.columns.length}</div>
+            </article>
+          </div>
+
+          <h2>Aperçu des cinq premières transactions</h2>
+
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>LIGNE</th>
+                  <th>TIME</th>
+                  <th>AMOUNT</th>
+                  <th>V1</th>
+                  <th>V2</th>
+                  <th>V3</th>
+                </tr>
+              </thead>
+              <tbody>
+                {preview.rows.map((row, index) => (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td>{row.Time}</td>
+                    <td>{row.Amount}</td>
+                    <td>{row.V1}</td>
+                    <td>{row.V2}</td>
+                    <td>{row.V3}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="info-note">
+            Fichier lu localement dans le navigateur.
+            Aucune transaction n'a encore été analysée par un modèle ML.
+            Les prédictions seront ajoutées dans une prochaine étape.
+          </div>
+        </section>
+      )}
+    </main>
+  )
+}

@@ -1,0 +1,12 @@
+{
+    "augmentation_method": "SMOTE",
+    "target_fraud_normal_ratio": 0.1,
+    "selection_dataset": "real_validation",
+    "primary_metric": "average_precision",
+    "secondary_metrics": [
+        "f1",
+        "recall",
+        "precision"
+    ],
+    "test_used_for_selection": false
+}

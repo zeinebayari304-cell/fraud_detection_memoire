@@ -1,0 +1,15 @@
+{
+    "selection_dataset": "Validation",
+    "criterion": "F2-score",
+    "model": "Random Forest",
+    "decision_threshold": 0.29,
+    "retraining_in_notebook12": false,
+    "test_used_for_selection": false,
+    "selection_frozen_before_test": true,
+    "validation_precision": 0.8695652173913043,
+    "validation_recall": 0.8450704225352113,
+    "validation_f1": 0.8571428571428571,
+    "validation_f2": 0.8498583569405099,
+    "validation_FP": 9,
+    "validation_FN": 11
+}

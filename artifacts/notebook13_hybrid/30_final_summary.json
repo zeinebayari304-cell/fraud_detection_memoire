@@ -1,0 +1,116 @@
+{
+  "decision": {
+    "selected": "RF",
+    "best_hybrid": "SoftWeighted",
+    "relative_gain": -0.004808252218325834,
+    "dominates_RF": false,
+    "reason": "parsimony",
+    "protocol_id": "641c8a79fdca0e2a29c126111e373a5a0fdaa95b9c151d8f042374c5d6cbce3b",
+    "exploratory": true
+  },
+  "recipe": {
+    "selected": "RF",
+    "component_order": [
+      "RF",
+      "XGB",
+      "LGBM"
+    ],
+    "weights": null,
+    "voting": "native",
+    "threshold": null,
+    "feature_order": [
+      "Time",
+      "V1",
+      "V2",
+      "V3",
+      "V4",
+      "V5",
+      "V6",
+      "V7",
+      "V8",
+      "V9",
+      "V10",
+      "V11",
+      "V12",
+      "V13",
+      "V14",
+      "V15",
+      "V16",
+      "V17",
+      "V18",
+      "V19",
+      "V20",
+      "V21",
+      "V22",
+      "V23",
+      "V24",
+      "V25",
+      "V26",
+      "V27",
+      "V28",
+      "Amount"
+    ],
+    "model_paths": {
+      "RF": "C:\\Users\\MSI\\Desktop\\fraud_detection_memoire\\notebooks\\notebook11_adversarial_training\\defence_v2\\final_selected_models\\random_forest_selected.joblib",
+      "XGB": "C:\\Users\\MSI\\Desktop\\fraud_detection_memoire\\notebooks\\notebook11_adversarial_training\\defence_v2\\final_selected_models\\xgboost_selected.joblib",
+      "LGBM": "C:\\Users\\MSI\\Desktop\\fraud_detection_memoire\\notebooks\\notebook11_adversarial_training\\defence_v2\\final_selected_models\\lightgbm_selected.joblib"
+    },
+    "model_sha256": {
+      "RF": "83753dc0f6b79d9f23228b94ddc693315a968ca2269eab4d1f6ba38b8a9de781",
+      "XGB": "e09467e2ce6dc67ee221821f1b393630fa9ee382a050f5a749f655bb8a0cdba8",
+      "LGBM": "e02ddba89ade0f93f9eec537676569ecf7125bde9bd04c3358d3a6590778dd09"
+    },
+    "protocol_id": "641c8a79fdca0e2a29c126111e373a5a0fdaa95b9c151d8f042374c5d6cbce3b"
+  },
+  "test_clean": {
+    "Model": "RF",
+    "AP": 0.8188709529688145,
+    "Precision": 0.8888888888888888,
+    "Recall": 0.7887323943661971,
+    "F1": 0.835820895522388,
+    "MCC": 0.8370607330965177,
+    "ROC_AUC": 0.9684928437126241,
+    "Accuracy": 0.9994830705608685,
+    "TN": 42481,
+    "FP": 7,
+    "FN": 15,
+    "TP": 56
+  },
+  "test_adversarial": {
+    "selected": "RF",
+    "historical_panel_n": 53,
+    "clean_misses": 0,
+    "eligible_n": 53,
+    "test_hashes": {
+      "X": "91baa83527cadc64af999092910a5d006ebac9ea4bc04d943f6e515b34b5e026",
+      "y": "0fe8692bef3c7cdbee1a36d85a5407806aa085f0efa795670c228cdf18b84c62"
+    },
+    "protocol_source": "NB11_historical_details",
+    "history_note": "NB11 réutilisé ; provenance par fichier et panel, distances vérifiées. Identité des anciens modèles/données non certifiée par empreintes historiques. Requêtes et temps non récupérés : zéros techniques à ne pas interpréter comme coût nul.",
+    "complete": true,
+    "ASR": 0.05660377358490566,
+    "HSJ_Resistance": 0.9433962264150944,
+    "evaluated": 53,
+    "unknown": 0,
+    "local_successes": 3,
+    "Panel_Detection_Lower": 0.9433962264150944,
+    "Panel_Detection_Upper": 0.9433962264150944,
+    "Panel_Detection_After_Attack": 0.9433962264150944
+  },
+  "versions": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "joblib": "1.6.0",
+    "adversarial-robustness-toolbox": "1.20.1",
+    "xgboost": "3.4.1",
+    "lightgbm": "4.7.0"
+  },
+  "limitations": [
+    "Validation réutilisée pour sélectionner les poids.",
+    "Test déjà consulté dans NB11/NB12 ; extension exploratoire.",
+    "Panel HSJ sélectionné et petit ; résistance empirique, non certifiée.",
+    "Linf vérifié après génération, pas une optimisation garantie sous epsilon.",
+    "Pas de nouvelle évaluation ZOO de cet ensemble."
+  ]
+}

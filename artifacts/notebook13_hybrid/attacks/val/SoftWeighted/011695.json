@@ -1,0 +1,22 @@
+{
+  "Position": 11695,
+  "Status": "ok",
+  "Seed_Found": true,
+  "Local_Success": false,
+  "Raw_Success": true,
+  "Linf": 0.13011283765666304,
+  "L2": 0.41901543832959615,
+  "Immutable_Change": 0.0,
+  "Seed_Queries": 5000,
+  "HSJ_Queries": 24555,
+  "Time_s": 39.811765899998136,
+  "Adv_Pred": 0,
+  "Model": "SoftWeighted",
+  "Split": "val",
+  "Protocol_ID": "641c8a79fdca0e2a29c126111e373a5a0fdaa95b9c151d8f042374c5d6cbce3b",
+  "Data_Hashes": {
+    "X": "5b802061d2bca273706843e6eb4eb6a5faf2cd9c63c8416b1a32c04062ff3f7a",
+    "y": "8467b775aaef2969467910c630a2bb7f33ebccb6159cf84c0d31f5f8a244e456"
+  },
+  "Example_File": "011695.npy"
+}
