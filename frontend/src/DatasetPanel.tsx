@@ -8,7 +8,8 @@ import {
   type DatasetRow,
   type DatasetStatus,
 } from './api'
-import { fmt, fmtInt, useAsync } from './useAsync'
+import { fmt, fmtInt } from './format'
+import { useAsync } from './useAsync'
 
 const PAGE_SIZE = 8
 
@@ -91,7 +92,7 @@ export default function DatasetPanel({ selectedId, onUse }: Props) {
     }
   }
 
-  const useRow = async (id: number) => {
+  const loadRow = async (id: number) => {
     setBusy(true)
     setMessage('')
     try {
@@ -123,7 +124,7 @@ export default function DatasetPanel({ selectedId, onUse }: Props) {
       setMessage('Saisissez un numéro de ligne valide (1 ou plus).')
       return
     }
-    void useRow(id)
+    void loadRow(id)
   }
 
   const picker = (
@@ -307,7 +308,7 @@ export default function DatasetPanel({ selectedId, onUse }: Props) {
                         type="button"
                         className="bank-button secondary"
                         disabled={busy}
-                        onClick={() => void useRow(row.id)}
+                        onClick={() => void loadRow(row.id)}
                       >
                         Utiliser
                       </button>

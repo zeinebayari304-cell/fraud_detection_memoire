@@ -12,7 +12,9 @@ import {
   fetchDashboard, fetchDataset,
   type DashboardData, type DatasetInfo,
 } from './api'
-import { DataState, fmt, fmtInt, useAsync } from './useAsync'
+import { DataState } from './DataState'
+import { fmt, fmtInt } from './format'
+import { useAsync } from './useAsync'
 
 type Period = '7j' | '30j' | '90j'
 

@@ -1,0 +1,57 @@
+# FraudShield : base PostgreSQL + API FastAPI + interface React (nginx).
+#
+#   1. copier .env.example en .env et remplir les valeurs
+#   2. déposer les modèles dans models/ (et creditcard.csv dans data/raw/ si disponible)
+#   3. docker compose up -d --build
+#   4. ouvrir http://localhost:8080
+name: fraudshield
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fraud}
+      POSTGRES_USER: ${POSTGRES_USER:-fraud}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définissez POSTGRES_PASSWORD dans .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      FRAUD_DATABASE_URL: postgresql://${POSTGRES_USER:-fraud}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-fraud}
+      FRAUD_JWT_SECRET: ${FRAUD_JWT_SECRET:?Définissez FRAUD_JWT_SECRET dans .env}
+      FRAUD_JWT_EXPIRE_MINUTES: ${FRAUD_JWT_EXPIRE_MINUTES:-120}
+      FRAUD_THRESHOLD: ${FRAUD_THRESHOLD:-0.5}
+      FRAUD_ADMIN_USERNAME: ${FRAUD_ADMIN_USERNAME:-}
+      FRAUD_ADMIN_EMAIL: ${FRAUD_ADMIN_EMAIL:-}
+      FRAUD_ADMIN_PASSWORD: ${FRAUD_ADMIN_PASSWORD:-}
+      FRAUD_ALLOW_TEST_EMAILS: ${FRAUD_ALLOW_TEST_EMAILS:-}
+      FRAUD_TRUST_PROXY: "1"
+    volumes:
+      - ./models:/app/models:ro
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata:

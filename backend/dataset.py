@@ -17,7 +17,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from fastapi import APIRouter, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
+from sqlalchemy.orm import Session
 from sklearn.metrics import (
     average_precision_score,
     confusion_matrix,
@@ -26,8 +27,19 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 
+import audit
+import history
+from database import get_db
+from db_models import User
 from model_service import FEATURES, MODEL_FILES, THRESHOLD, ModelNotLoadedError, service
 from notebook_tables import read_json
+from security import ANALYST, EXPERT, require_roles
+
+# Rôles : l'analyste parcourt le jeu de données (page « Analyse de transaction »),
+# l'expert teste les modèles dessus (page « Modèle final ») ; les deux peuvent l'importer.
+data_roles = require_roles(ANALYST, EXPERT)
+analyst_only = require_roles(ANALYST)
+expert_only = require_roles(EXPERT)
 
 logger = logging.getLogger("fraud-api")
 
@@ -101,7 +113,7 @@ def _row_payload(df: pd.DataFrame, split: np.ndarray, index: int, full: bool) ->
 
 # ---------------------------------------------------------------------- routes
 @router.get("/status")
-def status():
+def status(_: User = Depends(data_roles)):
     if not DATA_FILE.is_file():
         return {
             "available": False,
@@ -131,7 +143,12 @@ def status():
 
 
 @router.post("/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(
+    request: Request,
+    file: UploadFile = File(...),
+    user: User = Depends(data_roles),
+    db: Session = Depends(get_db),
+):
     """Importe creditcard.csv (flux en continu, validation avant remplacement)."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     tmp = DATA_DIR / ".upload.tmp"
@@ -167,7 +184,10 @@ async def upload(file: UploadFile = File(...)):
         if tmp.exists():
             tmp.unlink()
 
-    return status()
+    result = status(user)
+    audit.log(db, "dataset.upload", user=user, target="dataset:creditcard.csv",
+              details={"rows": result.get("rows"), "size_mb": result.get("size_mb")}, request=request)
+    return result
 
 
 @router.get("/transactions")
@@ -176,6 +196,7 @@ def transactions(
     label: str = Query("all"),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    _: User = Depends(analyst_only),
 ):
     df, sp = _load()
     mask = np.ones(len(df), dtype=bool)
@@ -203,6 +224,7 @@ def transactions(
 def random_transaction(
     label: str = Query("any"),
     split: str = Query("all"),
+    _: User = Depends(analyst_only),
 ):
     df, sp = _load()
     mask = np.ones(len(df), dtype=bool)
@@ -217,7 +239,7 @@ def random_transaction(
 
 
 @router.get("/transactions/{row_id}")
-def transaction(row_id: int):
+def transaction(row_id: int, _: User = Depends(analyst_only)):
     df, sp = _load()
     if not 1 <= row_id <= len(df):
         raise HTTPException(404, f"Ligne inconnue : {row_id} (1 à {len(df)}).")
@@ -243,8 +265,35 @@ def _metrics(y_true: np.ndarray, score: np.ndarray) -> dict:
 
 
 @router.get("/evaluation")
-def evaluation(model: str = Query("Random Forest"), split: str = Query("test")):
-    """Évalue un modèle chargé sur un sous-ensemble reconstruit du jeu de données."""
+def evaluation(
+    request: Request,
+    model: str = Query("Random Forest"),
+    split: str = Query("test"),
+    user: User = Depends(expert_only),
+    db: Session = Depends(get_db),
+):
+    """Évalue un modèle chargé sur un sous-ensemble reconstruit ; le test est gardé dans l'historique."""
+    result = _evaluate(model, split)
+    metrics = result["metrics"]
+    entry = history.record(
+        db, user, "evaluation", model=model, threshold=THRESHOLD,
+        filename=f"creditcard.csv ({split})",
+        summary={
+            "split": split,
+            "rows": result["rows"],
+            "frauds": result["frauds"],
+            "frauds_flagged": metrics["tp"] + metrics["fp"],
+            "metrics": metrics,
+            "matches_thesis": (result["reference"] or {}).get("matches"),
+        },
+    )
+    audit.log(db, "dataset.evaluation", user=user, target=f"analysis:{entry.id}",
+              details={"model": model, "split": split, "tp": metrics["tp"], "fp": metrics["fp"],
+                       "fn": metrics["fn"]}, request=request)
+    return {**result, "analysis_id": entry.id}
+
+
+def _evaluate(model: str, split: str) -> dict:
     if model not in MODEL_FILES:
         raise HTTPException(422, f"Modèle inconnu : {model}")
     if split not in ("validation", "test"):

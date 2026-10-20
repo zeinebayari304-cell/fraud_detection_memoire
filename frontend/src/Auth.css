@@ -1,0 +1,144 @@
+/* Pages de connexion / inscription, formulaires, fenêtres modales. */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(45, 212, 191, 0.12), transparent 40%),
+    #0b1424;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: #142137;
+  border: 1px solid #263750;
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.auth-card.wide { max-width: 560px; }
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.auth-brand .brand-icon { flex: none; }
+
+.auth-card h1 { font-size: 24px; margin: 0 0 6px; }
+.auth-card > p { color: #93a9c1; margin: 0 0 22px; font-size: 14px; }
+
+.form-field { margin-bottom: 16px; }
+.form-field label { display: block; font-size: 13px; color: #c3d2e2; margin-bottom: 7px; }
+.form-field .bank-input { width: 100%; }
+.form-field .bank-input[aria-invalid='true'] { border-color: #fb7185; }
+.field-error { color: #fb7185; font-size: 12px; margin-top: 6px; }
+.field-hint { color: #8fa5bb; font-size: 12px; margin-top: 6px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 0 16px;
+}
+
+.strength { display: flex; gap: 5px; margin-top: 8px; }
+.strength span { flex: 1; height: 5px; border-radius: 99px; background: #263750; }
+.strength[data-level='1'] span:nth-child(-n + 1) { background: #fb7185; }
+.strength[data-level='2'] span:nth-child(-n + 2) { background: #fbbf24; }
+.strength[data-level='3'] span:nth-child(-n + 3) { background: #a3e635; }
+.strength[data-level='4'] span { background: #34d399; }
+
+.auth-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.auth-actions .bank-button { width: 100%; justify-content: center; }
+.auth-switch { text-align: center; font-size: 13px; color: #93a9c1; margin-top: 18px; }
+.auth-switch a { color: #2dd4bf; }
+
+.password-wrap { position: relative; }
+.password-wrap .bank-input { padding-right: 76px; }
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 0;
+  color: #93a9c1;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+
+.notice-ok {
+  background: #173f37;
+  border: 1px solid #1f6b5d;
+  color: #bff5e6;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* Fenêtre modale */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(3, 8, 18, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: #142137;
+  border: 1px solid #263750;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.modal.wide { max-width: 980px; }
+.modal h2 { margin: 0 0 6px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 22px; }
+
+/* Barre d'outils des listes */
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 22px 0 16px; }
+.toolbar .bank-input, .toolbar select { width: auto; min-width: 160px; }
+.toolbar .grow { flex: 1; min-width: 200px; }
+
+.pager { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 14px; font-size: 13px; color: #a4b9cd; }
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.row-actions .bank-button { padding: 7px 11px; font-size: 12px; }
+.bank-button.danger { background: #3b1a24; border-color: #7f2d3d; color: #fecdd3; }
+.bank-button.danger:hover { background: #4c1d2b; }
+
+.empty-state { color: #93a9c1; padding: 28px 0; text-align: center; }
+
+/* Menu utilisateur (barre du haut) */
+.user-menu { display: flex; align-items: center; gap: 10px; }
+.user-menu .who { text-align: right; line-height: 1.3; }
+.user-menu .who strong { display: block; font-size: 13px; }
+.user-menu .who small { color: #93a9c1; font-size: 11px; }
+
+.badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #203347;
+  color: #c3d2e2;
+}
+.badge.green { background: #173f37; color: #34d399; }
+.badge.red { background: #442638; color: #fb7185; }
+.badge.amber { background: #493823; color: #fbbf24; }
+.badge.blue { background: #17304d; color: #60a5fa; }

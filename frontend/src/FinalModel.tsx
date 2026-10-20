@@ -1,7 +1,9 @@
 import { Link } from 'react-router'
 import { fetchFinalModel } from './api'
 import EvaluationPanel from './EvaluationPanel'
-import { DataState, colorOf, fmt, fmtInt, useAsync } from './useAsync'
+import { DataState } from './DataState'
+import { colorOf, fmt, fmtInt } from './format'
+import { useAsync } from './useAsync'
 
 const sectionStyle = { marginBottom: 24 }
 

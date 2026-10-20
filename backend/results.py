@@ -7,12 +7,16 @@ renvoie `available: false` plutôt qu'une valeur inventée.
 
 import math
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from model_service import MODEL_FILES, THRESHOLD, service
 from notebook_tables import canonical_model, find_table, read_json
+from security import EXPERT, get_current_user, require_roles
 
 router = APIRouter(prefix="/results", tags=["Résultats du mémoire"])
+
+# Cas « Résultats scientifiques » du diagramme : réservés à l'expert.
+expert_only = [Depends(require_roles(EXPERT))]
 
 NB03 = "03_baseline"
 NB09 = "09_augmented_models"
@@ -63,7 +67,7 @@ def model_rank(name: str) -> int:
 
 
 # ---------------------------------------------------------------- comparaison
-@router.get("/models")
+@router.get("/models", dependencies=expert_only)
 def models_comparison():
     stages = []
 
@@ -155,7 +159,7 @@ def models_comparison():
 
 
 # ------------------------------------------------------------------ robustesse
-@router.get("/robustness")
+@router.get("/robustness", dependencies=expert_only)
 def robustness():
     asr = find_table(NB10, ["Attack", "Model", "Attacks", "Successful_Attacks", "ASR", "CI95_Low"])
     dist = find_table(NB10, ["Attack", "Model", "Mean_L2_All", "Mean_Linf_All"])
@@ -212,7 +216,7 @@ def robustness():
 
 
 # --------------------------------------------------------------------- défense
-@router.get("/defense")
+@router.get("/defense", dependencies=expert_only)
 def defense():
     main = find_table(NB11, ["Model", "Selected_Version", "Before_HSJ_Local_ASR_%", "After_ZOO_Raw_ASR_%"])
     if not main:
@@ -256,7 +260,7 @@ def defense():
 
 
 # ----------------------------------------------------------------- modèle final
-@router.get("/final-model")
+@router.get("/final-model", dependencies=expert_only)
 def final_model():
     selection = read_json("notebook12_final_selection", "06_final_model_selection.json")
     summary = read_json("notebook12_final_selection", "12_final_summary.json")
@@ -342,7 +346,7 @@ def final_model():
 
 
 # -------------------------------------------------------------------- jeu de données
-@router.get("/dataset")
+@router.get("/dataset", dependencies=[Depends(get_current_user)])
 def dataset():
     rows = find_table(NB01, ["Contrôle", "Résultat"])
     if not rows:

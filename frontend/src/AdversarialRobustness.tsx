@@ -4,7 +4,9 @@ import {
   Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { fetchRobustness } from './api'
-import { DataState, colorOf, fmt, fmtInt, useAsync } from './useAsync'
+import { DataState } from './DataState'
+import { colorOf, fmt, fmtInt } from './format'
+import { useAsync } from './useAsync'
 
 type Attack = 'ZOO' | 'HSJ'
 

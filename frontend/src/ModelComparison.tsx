@@ -4,7 +4,9 @@ import {
   Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
 import { fetchModelsResults, type ModelMetrics } from './api'
-import { DataState, colorOf, fmt, useAsync } from './useAsync'
+import { DataState } from './DataState'
+import { colorOf, fmt } from './format'
+import { useAsync } from './useAsync'
 
 type Metric = 'accuracy' | 'precision' | 'recall' | 'f1' | 'rocAuc' | 'prAuc'
 

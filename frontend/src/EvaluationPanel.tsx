@@ -5,7 +5,8 @@ import {
   fetchHealth,
   type EvaluationResult,
 } from './api'
-import { colorOf, fmt, fmtInt, useAsync } from './useAsync'
+import { colorOf, fmt, fmtInt } from './format'
+import { useAsync } from './useAsync'
 
 const pct = (value: number) => `${fmt(value * 100, 2)} %`
 

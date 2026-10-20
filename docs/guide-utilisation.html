@@ -49,7 +49,6 @@
     color: var(--text); border-radius: 8px; padding: 6px 12px; }
   button:hover { border-color: var(--accent); }
   .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 0; }
-  /* checklist */
   .sticky { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 12px 0; border-bottom: 1px solid var(--line); }
   .bar { height: 10px; border-radius: 99px; background: var(--line); overflow: hidden; display: flex; }
   .bar i { display: block; height: 100%; } .bar .p { background: var(--pass); } .bar .f { background: var(--fail); }
@@ -68,180 +67,147 @@
 <div class="wrap">
   <header>
     <h1>Guide FraudShield : installer, utiliser et tester</h1>
-    <p class="muted">Application de détection de fraude bancaire (backend FastAPI + frontend React). Ce guide s'ouvre dans un navigateur ;
-      il est dans le dossier <code>docs/</code> du projet.</p>
+    <p class="muted">Application de détection de fraude bancaire : comptes et rôles, analyse de transactions, historique,
+      administration, résultats du mémoire. Ce guide est dans le dossier <code>docs/</code> du projet.</p>
     <nav class="toc">
       <a href="#installer">1. Installer</a>
       <a href="#lancer">2. Lancer</a>
-      <a href="#utiliser">3. Utiliser</a>
-      <a href="#depannage">4. Dépannage</a>
-      <a href="#tests">5. Checklist de test</a>
-      <a href="#limites">6. Limites</a>
+      <a href="#roles">3. Comptes et rôles</a>
+      <a href="#utiliser">4. Utiliser</a>
+      <a href="#depannage">5. Dépannage</a>
+      <a href="#tests">6. Tests</a>
+      <a href="#limites">7. Limites</a>
     </nav>
   </header>
 
   <h2 id="installer">1. Installer</h2>
 
-  <h3>1.1 Programmes nécessaires</h3>
-  <div class="card">
-    <table>
-      <thead><tr><th>Programme</th><th>Version</th><th>Remarque</th></tr></thead>
-      <tbody>
-        <tr><td>Python</td><td>3.11 ou plus récent</td><td>à l'installation, cochez « Add Python to PATH »</td></tr>
-        <tr><td>Node.js</td><td><b>20.19 ou plus récent</b></td><td>avec une version plus ancienne, voir le <a href="#depannage">dépannage</a></td></tr>
-        <tr><td>Git</td><td>n'importe laquelle</td><td>pour récupérer le projet</td></tr>
-        <tr><td>VS Code</td><td>n'importe laquelle</td><td>facultatif, mais des tâches de lancement sont fournies</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>1.2 Récupérer le projet</h3>
+  <h3>1.1 Récupérer le projet</h3>
   <pre>git clone https://github.com/zeinebayari304-cell/fraud_detection_memoire.git
 cd fraud_detection_memoire
-git checkout feat/api-prediction-fraude-frontend-connecte</pre>
+git checkout feat/auth-roles-crud-historique-docker</pre>
 
-  <h3>1.3 Ajouter les fichiers absents de git</h3>
-  <p>Ces fichiers ne sont volontairement pas dans git (taille, licence). Il faut les ajouter à la main.</p>
+  <h3>1.2 Ajouter les fichiers absents de git</h3>
   <div class="card">
     <table>
       <thead><tr><th>Quoi</th><th>Où le placer</th><th>D'où il vient</th></tr></thead>
       <tbody>
-        <tr><td><b>Modèles</b> : <code>random_forest_selected.joblib</code>, <code>xgboost_selected.joblib</code>, <code>lightgbm_selected.joblib</code>
-          (et, si vous voulez les cinq modèles, <code>logistic_regression_selected.joblib</code>, <code>linear_svm_selected.joblib</code>)</td>
-          <td><code>models/</code></td>
-          <td>créés par le notebook 11 dans <code>notebooks\notebook11_adversarial_training\defence_v2\final_selected_models\</code></td></tr>
-        <tr><td><b>Scaler</b> : <code>minmax_scaler.joblib</code></td>
-          <td><code>models/</code></td>
-          <td>créé par le notebook 02 (dossier <code>models</code> du projet)</td></tr>
-        <tr><td><b>Jeu de données</b> : <code>creditcard.csv</code> (environ 144 Mo)</td>
-          <td><code>data/raw/</code> (à créer) <i>ou</i> import depuis l'application</td>
+        <tr><td><b>Modèles</b> : <code>random_forest_selected.joblib</code> (obligatoire), <code>xgboost_selected.joblib</code>, <code>lightgbm_selected.joblib</code>
+          (et éventuellement <code>logistic_regression_selected.joblib</code>, <code>linear_svm_selected.joblib</code>)</td>
+          <td><code>models/</code></td><td>notebook 11 : <code>notebooks\notebook11_adversarial_training\defence_v2\final_selected_models\</code></td></tr>
+        <tr><td><b>Scaler</b> : <code>minmax_scaler.joblib</code> (obligatoire)</td><td><code>models/</code></td><td>notebook 02</td></tr>
+        <tr><td><b>Jeu de données</b> : <code>creditcard.csv</code> (≈ 144 Mo)</td><td><code>data/raw/</code> <i>ou</i> import depuis l'application</td>
           <td><a href="https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud" target="_blank" rel="noopener">Kaggle : mlg-ulb/creditcardfraud</a></td></tr>
+        <tr><td><b>Configuration</b> : <code>.env</code></td><td>racine du projet</td><td>copie de <code>.env.example</code>, à remplir (voir ci-dessous)</td></tr>
       </tbody>
     </table>
-    <div class="warn">Le scaler et au moins le modèle <b>Random Forest</b> sont indispensables : sans eux l'API répond « Modèle non chargé ».
-      Les modèles doivent avoir été enregistrés avec la version de scikit-learn imposée par le projet (1.9.0).</div>
   </div>
 
-  <h3>1.4 Installer les dépendances (une seule fois)</h3>
-  <p><b>Avec VS Code :</b> ouvrez le dossier du projet, puis menu <b>Terminal → Exécuter la tâche</b> et lancez, l'une après l'autre :</p>
+  <h3>1.3 Option A — avec Docker (recommandé, fonctionne sur toute machine)</h3>
   <ol class="steps">
-    <li><code>Backend : installer les dépendances (une seule fois)</code></li>
-    <li><code>Frontend : installer les dépendances (une seule fois)</code></li>
+    <li>Installez <a href="https://www.docker.com/products/docker-desktop/" target="_blank" rel="noopener">Docker Desktop</a> et démarrez-le.</li>
+    <li>Copiez <code>.env.example</code> en <code>.env</code> et remplissez :
+      <code>POSTGRES_PASSWORD</code> (lettres et chiffres), <code>FRAUD_JWT_SECRET</code> (longue chaîne aléatoire),
+      et le premier administrateur <code>FRAUD_ADMIN_USERNAME</code>, <code>FRAUD_ADMIN_EMAIL</code>, <code>FRAUD_ADMIN_PASSWORD</code>.</li>
+    <li>Lancez : <pre>docker compose up -d --build</pre> La première construction prend quelques minutes.</li>
+    <li>Ouvrez <a href="http://localhost:8080" target="_blank" rel="noopener">http://localhost:8080</a> et connectez-vous avec l'administrateur du <code>.env</code>.</li>
   </ol>
-  <p><b>Ou en ligne de commande</b> (à la racine du projet) :</p>
-  <pre>py -m venv backend\.venv
-backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
-cd frontend
-npm install
-cd ..</pre>
-  <p class="muted">macOS / Linux : <code>python3 -m venv backend/.venv</code> puis <code>backend/.venv/bin/python -m pip install -r backend/requirements.txt</code>.</p>
+  <p class="muted">La base PostgreSQL est conservée entre les redémarrages (volume <code>pgdata</code>). <code>docker compose down</code> arrête tout ;
+    <code>docker compose down -v</code> supprime aussi la base.</p>
 
-  <h2 id="lancer">2. Lancer l'application</h2>
-  <p><b>Avec VS Code :</b> appuyez sur <b>Ctrl+Maj+B</b> (tâche « Lancer l'application (API + interface) »). Deux terminaux s'ouvrent.</p>
-  <p><b>Ou à la main</b>, dans deux terminaux :</p>
-  <pre>cd backend
-.venv\Scripts\python.exe -m uvicorn main:app --reload --port 8000</pre>
-  <pre>cd frontend
-npm run dev</pre>
+  <h3>1.4 Option B — sans Docker (développement, Windows)</h3>
+  <ol class="steps">
+    <li>Installez Python 3.11+ (cochez « Add Python to PATH »), Node.js 20.19+ et VS Code.</li>
+    <li>Dans VS Code, menu <b>Terminal → Exécuter la tâche</b> : <code>Backend : installer les dépendances</code> puis <code>Frontend : installer les dépendances</code>.</li>
+    <li>Facultatif : créez <code>.env</code> (le premier administrateur et le secret de session y sont lus ; la base reste SQLite dans <code>backend/data/app.db</code>).</li>
+  </ol>
+
+  <h2 id="lancer">2. Lancer</h2>
   <div class="card">
     <table>
-      <thead><tr><th>Adresse</th><th>Contenu</th></tr></thead>
+      <thead><tr><th>Mode</th><th>Commande</th><th>Adresse</th></tr></thead>
       <tbody>
-        <tr><td><a href="http://localhost:5173" target="_blank" rel="noopener">http://localhost:5173</a></td><td>l'application</td></tr>
-        <tr><td><a href="http://localhost:8000/health" target="_blank" rel="noopener">http://localhost:8000/health</a></td><td>état de l'API : doit afficher <code>"models_ready": true</code></td></tr>
-        <tr><td><a href="http://localhost:8000/docs" target="_blank" rel="noopener">http://localhost:8000/docs</a></td><td>documentation interactive de l'API</td></tr>
+        <tr><td>Docker</td><td><code>docker compose up -d --build</code></td><td><a href="http://localhost:8080" target="_blank" rel="noopener">localhost:8080</a> · API : <code>/api/docs</code></td></tr>
+        <tr><td>Sans Docker</td><td><b>Ctrl+Maj+B</b> dans VS Code</td><td><a href="http://localhost:5173" target="_blank" rel="noopener">localhost:5173</a> · API : <a href="http://localhost:8000/docs" target="_blank" rel="noopener">localhost:8000/docs</a></td></tr>
       </tbody>
     </table>
   </div>
-  <p>Pour arrêter : <b>Ctrl+C</b> dans chaque terminal.</p>
+  <p>Pas d'administrateur dans <code>.env</code> ? Sans Docker : tâche <code>Backend : créer un administrateur</code>.
+    Avec Docker : <code>docker compose exec backend python manage.py create-user --role admin --username &lt;nom&gt; --email &lt;e-mail&gt;</code>
+    (le mot de passe est demandé au clavier).</p>
 
-  <h2 id="utiliser">3. Utiliser l'application</h2>
-  <p>En bas de la barre latérale, l'état de l'API est affiché (« API connectée · Random Forest »).</p>
-
-  <h3>Tableau de bord</h3>
-  <p>Vue en direct de ce qui a été analysé <b>dans l'application</b> : transactions analysées, fraudes signalées, taux, activité sur 7 / 30 / 90 jours,
-    dernières alertes, état des modèles. Il se rafraîchit tout seul toutes les 15 secondes. Après une installation neuve, tout est à 0 tant que
-    rien n'a été analysé.</p>
-
-  <h3>Analyse de transaction</h3>
-  <ol class="steps">
-    <li>Choisissez le modèle (un modèle dont le fichier manque affiche « (non chargé) »).</li>
-    <li>Remplissez les 30 champs à la main, ou utilisez le panneau <b>Jeu de données</b> au-dessus du formulaire :
-      <b>Importer creditcard.csv</b> (si le fichier n'est pas encore dans <code>data/raw/</code>), <b>Fraude aléatoire</b>, <b>Normale aléatoire</b>,
-      un <b>numéro de ligne</b>, ou le tableau (filtres classe et sous-ensemble Test / Validation / Entraînement, puis <b>Utiliser</b>).</li>
-    <li>Cliquez sur <b>Analyser la transaction</b> : verdict, probabilité de fraude, niveau de risque, seuil. Si le score atteint le seuil,
-      une bannière <b>« ⚠ Alerte de fraude »</b> s'affiche.</li>
-    <li>Pour une ligne du jeu de données, le résultat indique aussi sa <b>classe réelle</b> (prédiction correcte, fraude manquée ou fausse alerte).</li>
-    <li><b>Comparer tous les modèles</b> note la même transaction avec chaque modèle chargé.</li>
-  </ol>
-
-  <h3>Analyse CSV</h3>
-  <ol class="steps">
-    <li>Glissez un CSV contenant au moins <code>Time</code>, <code>V1</code>…<code>V28</code>, <code>Amount</code> (les autres colonnes, comme <code>Class</code>, sont ignorées ; 5 Mo maximum).</li>
-    <li>Choisissez le modèle, cliquez sur <b>Lancer l'analyse</b>.</li>
-    <li>Filtrez les résultats (Toutes / Normale / Fraude suspectée) et cliquez sur <b>Exporter les résultats CSV</b>.</li>
-  </ol>
-
-  <h3>Pages de résultats scientifiques</h3>
-  <p>Ces pages lisent <b>en direct</b> les résultats des notebooks (<code>notebooks/</code>) et du dossier <code>artifacts/</code> : rien n'est écrit à la main
-    dans l'interface. Si une source manque, la page l'indique.</p>
+  <h2 id="roles">3. Comptes et rôles</h2>
+  <p>Toutes les pages exigent une connexion (session JWT), comme l'indique le diagramme de cas d'utilisation. Le serveur vérifie le rôle à chaque requête.</p>
   <div class="card">
     <table>
-      <thead><tr><th>Page</th><th>Contenu</th></tr></thead>
+      <thead><tr><th>Rôle</th><th>Accès</th></tr></thead>
       <tbody>
-        <tr><td>Comparaison des modèles</td><td>Accuracy, precision, recall, F1, ROC-AUC, PR-AUC pour trois phases : baseline, après SMOTE, après adversarial training (jeu de <b>test</b>)</td></tr>
-        <tr><td>Robustesse adversariale</td><td>Attaques ZOO et HopSkipJump : taux de succès (ASR) avec intervalle à 95 %, taille des perturbations, coût, recall avant/après</td></tr>
-        <tr><td>Adversarial Training</td><td>ASR avant/après la défense, recall conservé (jeu de <b>validation</b>), coût d'entraînement, portes de validation</td></tr>
-        <tr><td>Modèle final</td><td>Règle de sélection, classement, résultats de test, vérification hybride, état du déploiement et <b>Vérification en direct</b></td></tr>
+        <tr><td><b>Analyste antifraude</b></td><td>tableau de bord, analyse de transaction, analyse CSV, transactions (CRUD), historique et export</td></tr>
+        <tr><td><b>Expert cybersécurité / Data Scientist</b></td><td>tableau de bord, comparaison des modèles, attaques ZOO / HopSkipJump, adversarial training, modèle final et tests en direct, historique</td></tr>
+        <tr><td><b>Administrateur</b></td><td>utilisateurs et rôles, journal d'audit, <b>et toutes les fonctions de l'analyste et de l'expert</b> : un seul compte administrateur suffit pour tester toute l'application</td></tr>
       </tbody>
     </table>
   </div>
-  <div class="note"><b>Vérification en direct</b> (page « Modèle final », nécessite le jeu de données) : le modèle est rejoué sur le jeu de test reconstruit avec
-    le découpage exact du notebook 02. Pour le modèle final, le résultat attendu est <b>TP 56 / FP 7 / FN 15</b>, et la page indique si l'application est identique au mémoire.</div>
+  <ul>
+    <li><b>Inscription</b> : crée un compte « Analyste » ; l'administrateur peut changer le rôle.</li>
+    <li><b>Contrôle de saisie</b> : nom d'utilisateur de 3 à 30 caractères commençant par une lettre ; e-mail valide ; mot de passe d'au moins 8 caractères
+      avec majuscule, minuscule et chiffre, sans le nom d'utilisateur ; confirmation identique. Les erreurs s'affichent sous chaque champ.</li>
+    <li><b>Sécurité</b> : mots de passe chiffrés (bcrypt) ; 5 échecs verrouillent le compte 15 minutes ; la déconnexion, la désactivation,
+      le changement de rôle et la réinitialisation du mot de passe ferment les sessions ouvertes ; il reste toujours un administrateur actif.</li>
+  </ul>
 
-  <h3>Comment une prédiction est calculée</h3>
-  <ol class="steps">
-    <li><code>Amount</code> devient <code>log1p(Amount)</code> (même transformation que le notebook 02).</li>
-    <li>Les 30 colonnes (<code>Time, V1…V28, Amount</code>) passent dans le scaler MinMax.</li>
-    <li>Le modèle renvoie une probabilité de fraude.</li>
-    <li>La transaction est signalée si la probabilité est <b>supérieure ou égale au seuil</b> (0,5 par défaut, la règle native des modèles).</li>
-  </ol>
+  <h2 id="utiliser">4. Utiliser l'application</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Page</th><th>Ce qu'on y fait</th></tr></thead>
+      <tbody>
+        <tr><td>Tableau de bord</td><td>Analyses faites dans l'application (tous utilisateurs) : volumes, taux de fraude, activité, dernières alertes, modèles chargés.</td></tr>
+        <tr><td>Analyse de transaction</td><td>30 variables à la main ou depuis le panneau <b>Jeu de données</b> ; verdict, probabilité, <b>⚠ alerte de fraude</b>, classe réelle,
+          <b>Comparer tous les modèles</b>, <b>Enregistrer comme transaction</b>.</td></tr>
+        <tr><td>Analyse CSV</td><td>Analyse par lot (<code>Time</code>, <code>V1</code>…<code>V28</code>, <code>Amount</code> ; la colonne <code>Class</code> facultative sert de classe réelle), filtres, export.</td></tr>
+        <tr><td>Transactions</td><td><b>Ajouter</b> (formulaire, ligne CSV collée ou ligne du jeu de données), <b>voir</b>, <b>modifier</b>, <b>supprimer</b> (avec confirmation), <b>analyser</b> ; recherche et filtres.</td></tr>
+        <tr><td>Historique</td><td>Toutes vos analyses, lots CSV, comparaisons et tests de modèles ; filtres (type, modèle, dates), détail, <b>export CSV</b>, suppression.</td></tr>
+        <tr><td>Pages scientifiques</td><td>Résultats lus dans les notebooks ; « Modèle final » contient le <b>test en direct</b> (attendu : TP 56 / FP 7 / FN 15), enregistré dans l'historique.</td></tr>
+        <tr><td>Utilisateurs et rôles</td><td>Créer, modifier (e-mail, nom, rôle, statut), réinitialiser le mot de passe, déverrouiller, supprimer.</td></tr>
+        <tr><td>Journal d'audit</td><td>Qui a fait quoi, quand, depuis quelle IP, succès ou échec ; filtres.</td></tr>
+        <tr><td>Mon compte</td><td>Profil et changement de mot de passe.</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-  <h2 id="depannage">4. Dépannage</h2>
+  <h2 id="depannage">5. Dépannage</h2>
   <div class="card">
     <table>
       <thead><tr><th>Symptôme</th><th>Cause et solution</th></tr></thead>
       <tbody>
-        <tr><td>Les pages affichent une erreur rouge et « Réessayer »</td><td>L'API n'est pas lancée. Lancez-la (section 2), puis cliquez sur « Réessayer ».</td></tr>
-        <tr><td>« Modèle non chargé »</td><td>Un fichier manque dans <code>models/</code>. Ouvrez <code>/health</code> pour voir lequel, copiez-le, puis relancez l'API.</td></tr>
-        <tr><td>Erreur au chargement d'un modèle (version)</td><td>La version de scikit-learn diffère de celle qui a enregistré le modèle. Réinstallez avec <code>pip install -r backend\requirements.txt</code>.</td></tr>
-        <tr><td>Vite : « Cannot find native binding »</td><td>Node trop ancien (20.17). Installez Node 20.19 ou plus, ou dans <code>frontend/</code> : <code>npm install --no-save @rolldown/binding-win32-x64-msvc@&lt;version de rolldown installée&gt;</code>.</td></tr>
-        <tr><td>« Address already in use » (port 8000 ou 5173)</td><td>Une autre instance tourne déjà. Fermez-la, ou changez de port.</td></tr>
-        <tr><td>La page montre une ancienne version après une modification</td><td>Le serveur de développement a raté la modification : enregistrez de nouveau le fichier, ou relancez <code>npm run dev</code>.</td></tr>
-        <tr><td>Le panneau « Jeu de données » indique « À IMPORTER »</td><td><code>data/raw/creditcard.csv</code> est absent : importez-le depuis le panneau, ou copiez-le dans ce dossier.</td></tr>
-        <tr><td>Remettre le tableau de bord à zéro</td><td>Arrêtez l'API et supprimez <code>backend/data/activity.db</code>.</td></tr>
+        <tr><td>Retour à la page de connexion</td><td>Session expirée (2 h), déconnexion ailleurs ou rôle modifié : reconnectez-vous.</td></tr>
+        <tr><td>« Accès refusé »</td><td>Votre rôle ne donne pas accès à cette page (section 3).</td></tr>
+        <tr><td>« Compte temporairement verrouillé »</td><td>5 mots de passe erronés : attendez 15 min ou demandez à l'administrateur de déverrouiller.</td></tr>
+        <tr><td>« Modèle non chargé »</td><td>Un fichier manque dans <code>models/</code> : vérifiez <code>/health</code>.</td></tr>
+        <tr><td>Docker : <code>backend</code> reste « unhealthy »</td><td><code>docker compose logs backend</code> : souvent un modèle absent ou une valeur de <code>.env</code> invalide.</td></tr>
+        <tr><td>Docker Desktop : erreur « Inference manager »</td><td>Sans rapport avec le projet (fonction d'IA de Docker) ; le moteur fonctionne. Désactivez « Docker Model Runner » dans les réglages si besoin.</td></tr>
+        <tr><td>Vite : « Cannot find native binding » (sans Docker)</td><td>Node trop ancien : installez Node 20.19+.</td></tr>
+        <tr><td><code>npm install</code> échoue (« edgesOut »)</td><td>Bogue de npm 10.8 : utilisez <code>npm ci --legacy-peer-deps</code>.</td></tr>
       </tbody>
     </table>
   </div>
 
-  <h2 id="tests">5. Checklist de test</h2>
-  <p>Faites les étapes dans l'ordre. Cliquez sur la case d'une étape pour la marquer réussie (✓), échouée (✗), ou la remettre à zéro (○).
-    Votre progression est gardée dans ce navigateur. Les fichiers de test sont dans <code>docs/test_files/</code>.</p>
-
+  <h2 id="tests">6. Tests</h2>
+  <h3>6.1 Tests automatiques</h3>
   <div class="card">
     <table>
-      <thead><tr><th>Fichier de test</th><th>Rôle</th></tr></thead>
+      <thead><tr><th>Commande / tâche VS Code</th><th>Contenu</th></tr></thead>
       <tbody>
-        <tr><td><code>transactions_test.csv</code></td><td>20 transactions : 10 vraies fraudes et 10 transactions normales</td></tr>
-        <tr><td><code>invalide_colonnes_manquantes.csv</code></td><td>colonnes <code>V5</code> et <code>Amount</code> absentes</td></tr>
-        <tr><td><code>invalide_valeur_texte.csv</code></td><td>le texte « abc » dans une colonne numérique</td></tr>
-        <tr><td><code>invalide_montant_negatif.csv</code></td><td>montant négatif</td></tr>
-        <tr><td><code>invalide_extension.txt</code></td><td>mauvaise extension</td></tr>
-        <tr><td><code>invalide_vide.csv</code></td><td>en-tête seulement, aucune ligne</td></tr>
-        <tr><td><code>data/raw/creditcard.csv</code></td><td>sert aussi de fichier « trop gros » (144 Mo, limite de 5 Mo sur la page CSV)</td></tr>
+        <tr><td><code>Tests : backend (pytest)</code></td><td>98 tests : inscription et contrôle de saisie, connexion, verrouillage, déconnexion, matrice des rôles, gestion des utilisateurs,
+          CRUD des transactions et isolation entre utilisateurs, historique et export, journal d'audit, tableau de bord, tests de modèle. Base temporaire et modèles de substitution : vos données ne sont pas touchées.</td></tr>
+        <tr><td><code>Tests : frontend (vitest)</code></td><td>35 tests : règles de saisie et accès aux pages par rôle.</td></tr>
       </tbody>
     </table>
   </div>
+
+  <h3>6.2 Checklist manuelle</h3>
+  <p>Faites les étapes dans l'ordre. Cliquez sur la case d'une étape pour la marquer réussie (✓), échouée (✗) ou la remettre à zéro (○).
+    Votre progression reste dans ce navigateur. Fichiers de test : <code>docs/test_files/</code>.</p>
 
   <div class="sticky">
     <div class="bar" aria-hidden="true"><i class="p" id="barP"></i><i class="f" id="barF"></i></div>
@@ -257,17 +223,16 @@ npm run dev</pre>
   <div id="phases"></div>
 
   <div class="card">
-    <p><b>Critères de réussite.</b> Les trois contrôles de justesse sont <b>3.6, 4.2 et 8.11</b>. S'ils passent, la chaîne de prédiction est correcte
-      et reproduit le mémoire. Le reste vérifie la gestion des erreurs et la stabilité.</p>
+    <p><b>Critères de réussite.</b> Les contrôles essentiels sont <b>A.5</b> (inscription), <b>B.3</b> (rôles), <b>C.6</b> (fraude détectée),
+      <b>E.2</b> (lot CSV), <b>F.2</b> (historique et export) et <b>H.3</b> (TP 56 / FP 7 / FN 15).</p>
   </div>
 
-  <h2 id="limites">6. Limites et suite</h2>
+  <h2 id="limites">7. Limites</h2>
   <ul>
-    <li>Les modèles ont été évalués sur un seul jeu de données (transactions par carte européennes, 2013) : rien n'est garanti sur d'autres données.</li>
-    <li>Les chiffres de robustesse adversariale viennent de petits panels d'attaques (environ 53 fraudes attaquées) : ce sont des observations empiriques, pas des garanties certifiées.</li>
-    <li>L'application est un outil de recherche et d'aide à la décision : une transaction signalée doit être vérifiée.</li>
-    <li><b>Pas encore implémenté</b> (prévu d'après le diagramme de cas d'utilisation) : connexion / déconnexion JWT et rôles (Analyste, Expert, Administrateur),
-      historique des analyses par utilisateur avec export, journal d'audit, gestion des utilisateurs.</li>
+    <li>Les modèles ont été évalués sur un seul jeu de données (cartes européennes, 2013).</li>
+    <li>Les chiffres de robustesse viennent de petits panels d'attaques : observations empiriques, pas des garanties.</li>
+    <li>Outil d'aide à la décision : une transaction signalée doit être vérifiée.</li>
+    <li>Les tables sont créées au démarrage (pas encore d'outil de migration).</li>
   </ul>
 </div>
 
@@ -283,83 +248,79 @@ const FRAUD_EXAMPLE = [
 
 const PHASES = [
   { title: "Phase 0 — Démarrage", note: "", extra: "", tests: [
-    ["0.1", "Lancez l'application (section 2, Ctrl+Maj+B dans VS Code).", "Deux terminaux s'ouvrent : l'API et Vite, sans message d'erreur."],
-    ["0.2", "Ouvrez <a href='http://localhost:8000/health' target='_blank'>localhost:8000/health</a>.", "<code>\"models_ready\": true</code>. Les modèles dont vous avez copié les fichiers sont <code>loaded: true</code>, les autres <code>loaded: false</code>."],
-    ["0.3", "Ouvrez <a href='http://localhost:5173' target='_blank'>localhost:5173</a>.", "L'application s'affiche. Bas de la barre latérale : « API connectée · Random Forest ». Barre du haut : « API EN LIGNE »."],
+    ["0.1", "Lancez l'application (section 2).", "Docker : <code>docker compose ps</code> montre <code>db</code>, <code>backend</code> (healthy) et <code>frontend</code>. Sans Docker : deux terminaux sans erreur."],
+    ["0.2", "Ouvrez <code>/health</code> (Docker : <code>localhost:8080/api/health</code> ; sinon <code>localhost:8000/health</code>).", "<code>\"models_ready\": true</code>."],
+    ["0.3", "Ouvrez l'application et essayez d'aller directement sur <code>/transactions</code>.", "Vous êtes redirigé vers la page <b>Connexion</b>."],
   ]},
-  { title: "Phase 1 — Backend (facultatif)", note: "Ouvrez <a href='http://localhost:8000/docs' target='_blank'>localhost:8000/docs</a>. Cliquez sur un endpoint, puis « Try it out », puis « Execute ».", extra: "", tests: [
-    ["1.1", "<code>GET /models</code>", "Les modèles chargés sont listés comme tels, les autres comme non chargés."],
-    ["1.2", "<code>GET /dashboard?period=7j</code>", "Tous les totaux sont à 0 sur une installation neuve."],
-    ["1.3", "<code>GET /results/models</code>, <code>/results/robustness</code>, <code>/results/defense</code>, <code>/results/final-model</code>, <code>/results/dataset</code>", "Chacun renvoie <code>\"available\": true</code> avec des données."],
+  { title: "Phase A — Inscription et connexion", note: "", extra: "", tests: [
+    ["A.1", "Page Connexion → « Créer un compte ». Saisissez un nom « 1x », un e-mail « pas-un-email », un mot de passe « faible » et une confirmation différente, puis « Créer mon compte ».", "Quatre messages rouges, un sous chaque champ ; aucun compte n'est créé."],
+    ["A.2", "Saisissez un mot de passe valide qui contient le nom d'utilisateur (ex. nom « karim », mot de passe « Karim2026x »).", "Message : le mot de passe ne doit pas contenir le nom d'utilisateur."],
+    ["A.3", "Observez l'indicateur de force en tapant un mot de passe.", "La barre passe de Faible à Fort."],
+    ["A.4", "Inscrivez-vous avec un e-mail déjà utilisé (par ex. celui de l'administrateur).", "Message sous le champ e-mail : « Cette adresse e-mail est déjà utilisée »."],
+    ["A.5", "Inscrivez-vous avec des valeurs valides.", "Vous arrivez sur le <b>Tableau de bord</b> ; en haut à droite : votre nom et « Analyste antifraude » ; le menu ne montre que « Analyse des transactions »."],
+    ["A.6", "Cliquez sur « Déconnexion », puis reconnectez-vous avec un mauvais mot de passe.", "« Identifiants invalides. » (même message que pour un compte inexistant)."],
+    ["A.7", "Reconnectez-vous avec votre <b>e-mail</b> au lieu du nom d'utilisateur.", "Connexion réussie."],
   ]},
-  { title: "Phase 2 — Tableau de bord, état vide", note: "À faire avant toute analyse (installation neuve).", extra: "", tests: [
-    ["2.1", "Ouvrez « Tableau de bord ».", "Les quatre cartes affichent 0 et une note bleue indique qu'aucune transaction n'a encore été analysée."],
-    ["2.2", "Cliquez sur 7j, 30j, 90j.", "Le graphique se redessine, sans erreur."],
-    ["2.3", "Descendez dans la page.", "« Dernières alertes » est vide. « État de la plateforme » liste les modèles chargés et absents. La carte « Jeu de données du mémoire » affiche 284 807, 492, 0,173 %, 1 081."],
+  { title: "Phase B — Rôles", note: "", extra: "", tests: [
+    ["B.1", "Connecté en Analyste, tapez l'adresse <code>/users</code>.", "Page « Accès refusé » avec votre rôle."],
+    ["B.2", "Ouvrez « Mon compte » et changez votre mot de passe (essayez d'abord un mauvais mot de passe actuel).", "Erreur « Mot de passe actuel incorrect », puis succès avec le bon."],
+    ["B.3", "Déconnectez-vous, connectez-vous en <b>administrateur</b>.", "Menu complet : Analyse des transactions, Résultats scientifiques et Administration (l'administrateur a accès à tout)."],
   ]},
-  { title: "Phase 3 — Transaction unique (/transaction)", note: "", extra: "fraud", tests: [
-    ["3.1", "Cliquez sur « Analyser » avec le formulaire vide.", "Erreur « Veuillez remplir les 30 caractéristiques »."],
-    ["3.2", "Cliquez sur « Charger un exemple fictif », puis « Analyser » (Random Forest).", "<b>Transaction normale</b>, environ 3 %."],
-    ["3.3", "Même saisie, passez à XGBoost ou LightGBM (s'ils sont chargés).", "Normale, environ 0 %."],
-    ["3.4", "Passez à un modèle dont le fichier manque (par ex. « SVM linéaire ») et analysez.", "Erreur rouge « Modèle non chargé… ». La liste affiche « (non chargé) »."],
-    ["3.5", "Cliquez sur Réinitialiser, puis saisissez l'exemple de fraude ci-dessous.", "Les 30 champs sont remplis."],
-    ["3.6", "Analysez avec Random Forest.", "<b>Fraude suspectée, environ 81 %</b>, niveau de risque « Élevé », bannière « ⚠ Alerte de fraude »."],
-    ["3.7", "Passez à LightGBM.", "Fraude, environ 66 %."],
-    ["3.8", "Passez à XGBoost.", "<b>Normale, environ 45 %</b>. Les trois modèles ne sont pas d'accord sur cette ligne : c'est normal."],
-    ["3.9", "Saisissez Amount = <code>-5</code> et analysez.", "Erreur « Time et Amount doivent être positifs »."],
+  { title: "Phase C — Transaction unique (Analyste)", note: "Connectez-vous avec le compte Analyste.", extra: "fraud", tests: [
+    ["C.1", "« Analyse de transaction » : cliquez sur « Analyser » avec le formulaire vide.", "Erreur « Veuillez remplir les 30 caractéristiques »."],
+    ["C.2", "« Charger un exemple fictif », puis « Analyser » (Random Forest).", "<b>Transaction normale</b>, environ 3 %."],
+    ["C.3", "Choisissez un modèle « (non chargé) » et analysez.", "Erreur rouge « Modèle non chargé »."],
+    ["C.4", "Panneau « Jeu de données » : « Fraude aléatoire », puis « Analyser ».", "Note « classe réelle : fraude » ; le résultat indique si la prédiction est correcte."],
+    ["C.5", "Réinitialisez et saisissez l'exemple de fraude ci-dessous.", "Les 30 champs sont remplis."],
+    ["C.6", "Analysez avec Random Forest.", "<b>Fraude suspectée, environ 81 %</b>, bannière « ⚠ Alerte de fraude »."],
+    ["C.7", "« Comparer tous les modèles ».", "Tableau des modèles chargés (Random Forest 81,5 %, LightGBM 66,5 %, XGBoost 45,1 %) et « 2 modèle(s) sur 3 signalent une fraude »."],
+    ["C.8", "« Enregistrer comme transaction ».", "Note « Transaction n° … enregistrée » avec un lien vers vos transactions."],
   ]},
-  { title: "Phase 4 — Analyse CSV (/csv)", note: "Fichiers dans <code>docs/test_files/</code>.", extra: "", tests: [
-    ["4.1", "Glissez <code>transactions_test.csv</code> dans la zone de dépôt.", "« Fichier importé avec succès », 20 transactions, 30 variables, aperçu de 5 lignes."],
-    ["4.2", "Modèle Random Forest, cliquez sur « Lancer l'analyse ».", "20 analysées, <b>10 fraudes</b>, 10 normales, 50 % signalées. Les fraudes sont les lignes 2, 3, 5, 7, 8, 11, 16, 17, 18, 19 (TX-00002 environ 90 %)."],
-    ["4.3", "Utilisez les filtres Toutes / Normale / Fraude suspectée.", "Les listes affichent 20 / 10 / 10 lignes."],
-    ["4.4", "Passez à XGBoost et relancez l'analyse.", "<b>8 fraudes</b>, 12 normales (il rate les lignes 16 et 17)."],
-    ["4.5", "Passez à LightGBM et relancez.", "10 fraudes."],
-    ["4.6", "Cliquez sur « Exporter les résultats CSV ».", "Télécharge <code>fraudshield_resultats.csv</code> avec les colonnes <code>Prediction</code> et <code>Risk_score</code>."],
-    ["4.7", "Importez <code>invalide_colonnes_manquantes.csv</code>.", "« Colonnes manquantes : V5, Amount »."],
-    ["4.8", "Importez <code>invalide_valeur_texte.csv</code>.", "« …valeurs manquantes ou invalides »."],
-    ["4.9", "Importez <code>invalide_montant_negatif.csv</code>.", "« Time et Amount doivent être positifs »."],
-    ["4.10", "Importez <code>invalide_extension.txt</code>.", "« Veuillez sélectionner un fichier CSV »."],
-    ["4.11", "Importez <code>invalide_vide.csv</code>.", "« …ne contient aucune transaction »."],
-    ["4.12", "Importez <code>data/raw/creditcard.csv</code> (144 Mo) sur cette page.", "« Fichier trop volumineux : maximum 5 Mo »."],
-    ["4.13", "Réimportez <code>transactions_test.csv</code>, choisissez un modèle non chargé et analysez.", "Erreur « Modèle non chargé »."],
+  { title: "Phase D — Transactions (CRUD)", note: "", extra: "", tests: [
+    ["D.1", "Ouvrez « Transactions ».", "La transaction de C.8 apparaît dans la liste."],
+    ["D.2", "« + Nouvelle transaction » : référence « &lt;bad&gt; », puis « Enregistrer ».", "Messages : référence invalide et variables obligatoires."],
+    ["D.3", "Corrigez la référence, collez une ligne de 30 valeurs (ou « Fraude du jeu de données ») puis « Enregistrer ».", "« Transaction enregistrée » ; elle apparaît en tête de liste."],
+    ["D.4", "« Analyser » sur cette ligne.", "Message avec le verdict et le score ; la colonne « Dernier verdict » est mise à jour."],
+    ["D.5", "« Voir ».", "Fenêtre avec toutes les informations et les 30 variables."],
+    ["D.6", "« Modifier » : changez la référence et enregistrez.", "« Transaction modifiée » ; le verdict est conservé (les variables n'ont pas changé)."],
+    ["D.7", "Filtres « Fraudes réelles », « Non analysées » et la recherche.", "La liste se met à jour."],
+    ["D.8", "« Supprimer » puis « Annuler », puis « Supprimer » et confirmer.", "Annuler garde la ligne ; confirmer la supprime avec un message."],
   ]},
-  { title: "Phase 5 — Tableau de bord avec données réelles", note: "Après les phases 3 et 4, si vous avez fait chaque étape une fois.", extra: "", tests: [
-    ["5.1", "Ouvrez le tableau de bord (il se rafraîchit toutes les 15 s).", "Plusieurs dizaines de transactions analysées (4 analyses du formulaire + 20 lignes par analyse CSV), dont une part de fraudes. Le point du jour apparaît sur le graphique."],
-    ["5.2", "Regardez le tableau des alertes.", "Les dernières alertes apparaissent avec <code>TX-0000nn</code>, une date, un montant, un score et un badge de risque."],
-    ["5.3", "Regardez le camembert et la ligne « Par modèle ».", "Les modèles utilisés sont comptés."],
-    ["5.4", "Arrêtez l'API, relancez-la, rouvrez le tableau de bord.", "Les chiffres sont toujours là (le journal survit aux redémarrages)."],
+  { title: "Phase E — Analyse CSV", note: "Fichiers dans <code>docs/test_files/</code>.", extra: "", tests: [
+    ["E.1", "Glissez <code>transactions_test.csv</code>.", "« Fichier importé avec succès », 20 transactions."],
+    ["E.2", "Random Forest, « Lancer l'analyse ».", "<b>10 fraudes</b> sur 20 (lignes 2, 3, 5, 7, 8, 11, 16, 17, 18, 19)."],
+    ["E.3", "Avec XGBoost.", "<b>8 fraudes</b> (il rate les lignes 16 et 17)."],
+    ["E.4", "Importez les fichiers <code>invalide_*</code> un par un.", "Un message d'erreur précis pour chacun (colonnes manquantes, valeur texte, montant négatif, extension, fichier vide)."],
   ]},
-  { title: "Phase 6 — Pages de recherche (données réelles des notebooks)", note: "", extra: "", tests: [
-    ["6.1", "« Comparaison des modèles », phase « Baseline ».", "Random Forest recall <b>77,46 %</b>, precision 93,22 %, LightGBM F1 32,43 %. Les phases SMOTE et « après adversarial training » changent le tableau (dans cette dernière, Random Forest : precision 88,89 %, recall 78,87 %)."],
-    ["6.2", "« Robustesse adversariale », attaque ZOO.", "SVM linéaire ASR <b>81,1 %</b>, régression logistique 62,3 %. Les trois modèles à arbres sont à 0 % et la carte « Plus robuste » indique « 3 modèles »."],
-    ["6.3", "Robustesse, attaque HSJ.", "Random Forest 30,2 %, XGBoost 35,9 %."],
-    ["6.4", "Explorateur de modèle.", "Choisissez un modèle : les cartes changent (recall avant → après, faux négatifs)."],
-    ["6.5", "« Adversarial Training », attaque HSJ.", "Random Forest 30,2 → 5,7 %, réduction de « 81,3 % ». ZOO affiche N/A pour les modèles à arbres."],
-    ["6.6", "« Modèle final ».", "<b>Random Forest, défense V1</b>. Test : recall 78,9 %, precision 88,9 %, « 56 fraudes détectées, 15 manquées ». Classement : 1 Random Forest, 2 LightGBM, 3 XGBoost."],
-    ["6.7", "Bas de la page « Modèle final ».", "« Fichier du modèle chargé : Oui », vérification hybride « Parcimonie », cinq limites listées."],
+  { title: "Phase F — Historique", note: "", extra: "", tests: [
+    ["F.1", "Ouvrez « Historique ».", "Vos analyses : transaction unique, comparaison, transaction enregistrée, fichiers CSV."],
+    ["F.2", "« Détail » sur une analyse CSV, puis « Exporter en CSV ».", "Détail avec chaque ligne ; téléchargement de <code>fraudshield_analyse_….csv</code>."],
+    ["F.3", "Filtrez par type « Fichier CSV » puis par dates (une date de fin avant la date de début).", "Liste filtrée ; message d'erreur pour l'ordre des dates."],
+    ["F.4", "Supprimez une entrée (avec confirmation).", "L'entrée disparaît ; le tableau de bord ne la compte plus."],
   ]},
-  { title: "Phase 7 — Résilience", note: "", extra: "", tests: [
-    ["7.1", "Arrêtez le terminal de l'API.", "En moins de 20 s la barre latérale indique « API hors ligne ». Chaque page affiche une erreur rouge et un bouton « Réessayer »."],
-    ["7.2", "Relancez l'API puis cliquez sur « Réessayer ».", "Les données reviennent."],
-    ["7.3", "Renommez <code>models\\xgboost_selected.joblib</code> en <code>.bak</code> et relancez l'API.", "<code>/health</code> montre XGBoost non chargé et la liste affiche « (non chargé) ». Remettez ensuite le bon nom et relancez."],
+  { title: "Phase G — Administration", note: "Connectez-vous en administrateur.", extra: "", tests: [
+    ["G.1", "« Utilisateurs et rôles » : « + Nouvel utilisateur » avec un nom « x » et un mot de passe faible.", "Messages d'erreur sous les champs."],
+    ["G.2", "Créez un utilisateur valide avec le rôle « Expert ».", "« Utilisateur … créé » ; il apparaît avec le badge Expert."],
+    ["G.3", "Modifiez votre compte Analyste : rôle « Expert ».", "« Utilisateur … modifié ». Si ce compte est connecté ailleurs, sa session est fermée."],
+    ["G.4", "Votre propre ligne : le bouton « Supprimer » est-il actif ?", "Non : on ne peut pas supprimer son propre compte."],
+    ["G.5", "Désactivez un utilisateur, puis essayez de vous connecter avec lui.", "« Compte désactivé : contactez l'administrateur »."],
+    ["G.6", "Supprimez l'utilisateur créé en G.2 (avec confirmation).", "« Utilisateur … supprimé »."],
+    ["G.7", "« Journal d'audit » ; filtrez « Échecs ».", "Toutes les actions précédentes apparaissent ; le filtre ne garde que les échecs (mauvais mots de passe…)."],
   ]},
-  { title: "Phase 8 — Jeu de données et vérification en direct", note: "Nécessite <code>creditcard.csv</code>. Soit il est déjà dans <code>data/raw/</code> (alors passez l'étape 8.2), soit vous l'importez à l'étape 8.2.", extra: "", tests: [
-    ["8.1", "Ouvrez « Analyse de transaction », panneau « Jeu de données » (fichier absent).", "Étiquette « À IMPORTER », le chemin attendu est affiché, bouton « Importer creditcard.csv »."],
-    ["8.2", "Cliquez sur « Importer creditcard.csv » et choisissez le fichier.", "Une barre de progression s'affiche, puis l'étiquette passe à « DISPONIBLE » : <b>284 807 transactions, 492 fraudes (0,173 %)</b>, test : 42 559 lignes et 71 fraudes."],
-    ["8.3", "Importez <code>invalide_colonnes_manquantes.csv</code> (ou le fichier .txt) dans le même panneau.", "Message rouge (« Ce n'est pas le jeu creditcard.csv… » ou « Veuillez sélectionner un fichier CSV »). Le jeu de données déjà chargé reste disponible."],
-    ["8.4", "Cliquez sur « Fraude aléatoire ».", "Le formulaire se remplit avec 30 valeurs et une note indique « Transaction n° … — classe réelle : fraude »."],
-    ["8.5", "Cliquez sur « Analyser la transaction ».", "Le résultat affiche la ligne « Classe réelle (jeu de données) » : <b>prédiction correcte</b> (vert) ou <b>fraude manquée / fausse alerte</b> (rouge). Si le modèle signale une fraude, une bannière « ⚠ Alerte de fraude » apparaît."],
-    ["8.6", "Cliquez sur « Comparer tous les modèles ».", "Un tableau montre le score et le verdict des modèles chargés, et « n modèle(s) sur N signalent une fraude »."],
-    ["8.7", "Cliquez sur « Normale aléatoire », puis analysez.", "Normalement « Transaction normale » avec la mention « prédiction correcte »."],
-    ["8.8", "Filtrez sur « Fraudes » et le sous-ensemble « Test », parcourez les pages, cliquez sur « Utiliser » sur une ligne.", "La liste ne montre que des fraudes du jeu de test ; la ligne choisie remplit le formulaire."],
-    ["8.9", "Saisissez un numéro de ligne (par ex. 1) puis « Charger ».", "La ligne 1 remplit le formulaire. Un numéro hors limites (ex. 999999999) donne une erreur rouge."],
-    ["8.10", "Modifiez à la main une valeur du formulaire.", "La note « classe réelle » disparaît (la transaction n'est plus celle du jeu de données)."],
-    ["8.11", "Ouvrez « Modèle final », section « Vérification en direct sur le jeu de données ». Modèle Random Forest, jeu de test, « Lancer l'évaluation ».", "<b>TP 56 / FP 7 / FN 15</b> et le message « ✓ Résultat identique à celui du mémoire »."],
-    ["8.12", "Même section avec XGBoost, LightGBM, puis « Jeu de validation ».", "Les métriques s'affichent (XGBoost test : TP 56 / FP 13 / FN 15 ; LightGBM test : TP 55 / FP 7 / FN 16). Une note précise qu'il n'y a pas de référence du mémoire pour ces cas."],
+  { title: "Phase H — Expert : résultats et test en direct", note: "Connectez-vous avec le compte passé en Expert en G.3 (nouvelle connexion obligatoire). L'administrateur peut aussi faire H.2 à H.4.", extra: "", tests: [
+    ["H.1", "Regardez le menu.", "Tableau de bord, Historique et les 4 pages de Résultats scientifiques ; plus d'analyse de transaction."],
+    ["H.2", "« Comparaison des modèles », « Robustesse adversariale », « Adversarial Training ».", "Résultats des notebooks (ex. baseline Random Forest recall 77,46 % ; ZOO sur SVM linéaire 81,1 %)."],
+    ["H.3", "« Modèle final » → « Vérification en direct » → Random Forest, jeu de test, « Lancer l'évaluation ».", "<b>TP 56 / FP 7 / FN 15</b> et « ✓ Résultat identique à celui du mémoire »."],
+    ["H.4", "Ouvrez « Historique ».", "Une entrée « Test du modèle » avec ces chiffres, exportable."],
+  ]},
+  { title: "Phase I — Résilience", note: "", extra: "", tests: [
+    ["I.1", "Arrêtez l'API (Docker : <code>docker compose stop backend</code>).", "Les pages affichent une erreur et « Réessayer » ; la barre latérale indique « API hors ligne »."],
+    ["I.2", "Relancez l'API (<code>docker compose start backend</code>).", "Après « Réessayer », les données reviennent ; vous êtes toujours connecté."],
+    ["I.3", "Docker : <code>docker compose down</code> puis <code>docker compose up -d</code>.", "Comptes, transactions et historique sont toujours là (base conservée)."],
   ]},
 ];
 
-const KEY = "fraudshield-guide-v1";
+const KEY = "fraudshield-guide-v2";
 let state = {};
 try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { state = {}; }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
@@ -376,7 +337,7 @@ function render() {
     if (ph.note) { const n = document.createElement("div"); n.className = "note"; n.innerHTML = ph.note; root.appendChild(n); }
     if (ph.extra === "fraud") {
       const d = document.createElement("div"); d.className = "card";
-      d.innerHTML = "<b>Exemple de fraude réelle</b> <span class='muted'>(à saisir à l'étape 3.5)</span><pre id='fraudPre'></pre>" +
+      d.innerHTML = "<b>Exemple de fraude réelle</b> <span class='muted'>(à saisir à l'étape C.5)</span><pre id='fraudPre'></pre>" +
         "<div class='row-actions'><button type='button' id='copyFraud'>Copier les valeurs</button></div>";
       root.appendChild(d);
       d.querySelector("#fraudPre").textContent = FRAUD_EXAMPLE.map(([k, v]) => k + " = " + v).join("\n");

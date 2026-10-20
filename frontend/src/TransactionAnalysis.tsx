@@ -1,7 +1,9 @@
 
 import { useEffect, useState, type FormEvent } from 'react'
 import './TransactionAnalysis.css'
+import { Link } from 'react-router'
 import {
+  createTransaction,
   fetchHealth,
   predictAll,
   predictTransaction,
@@ -64,6 +66,33 @@ export default function TransactionAnalysis() {
   const [source, setSource] = useState<DatasetSource | null>(null)
   const [compare, setCompare] = useState<CompareResult | null>(null)
   const [comparing, setComparing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [savedId, setSavedId] = useState<number | null>(null)
+
+  // Cas UML « Enregistrer les résultats » : la transaction rejoint la liste CRUD.
+  const saveTransaction = async () => {
+    const problem = formProblem()
+    if (problem) {
+      setError(problem)
+      return
+    }
+    setSaving(true)
+    setError('')
+    try {
+      const saved = await createTransaction({
+        features: numericFeatures(),
+        reference: source ? `dataset-${source.id}` : null,
+        true_label: source ? source.label : null,
+        source: source ? 'jeu de données' : 'manuel',
+        dataset_row: source?.id ?? null,
+      })
+      setSavedId(saved.id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Enregistrement impossible.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   useEffect(() => {
     fetchHealth()
@@ -84,6 +113,7 @@ export default function TransactionAnalysis() {
     }))
     setResult(null)
     setCompare(null)
+    setSavedId(null)
     setSource(null)
     setError('')
   }
@@ -103,6 +133,7 @@ export default function TransactionAnalysis() {
     setSource({ id: row.id, label: row.label, split: row.split })
     setResult(null)
     setCompare(null)
+    setSavedId(null)
     setError('')
   }
 
@@ -143,6 +174,7 @@ export default function TransactionAnalysis() {
   const fillExample = () => {
     setSource(null)
     setCompare(null)
+    setSavedId(null)
     setValues({
       Time: '406',
       Amount: '149.62',
@@ -172,9 +204,14 @@ export default function TransactionAnalysis() {
     setError('')
     setResult(null)
     setCompare(null)
+    setSavedId(null)
 
     try {
-      const prediction = await predictTransaction(model, numericFeatures())
+      const prediction = await predictTransaction(
+        model,
+        numericFeatures(),
+        source ? { true_label: source.label, dataset_row: source.id } : null
+      )
 
       setResult({
         status: prediction.is_fraud ? 'fraud' : 'normal',
@@ -197,6 +234,7 @@ export default function TransactionAnalysis() {
     setValues({ ...initialValues })
     setResult(null)
     setCompare(null)
+    setSavedId(null)
     setSource(null)
     setError('')
   }
@@ -350,6 +388,14 @@ export default function TransactionAnalysis() {
               Réinitialiser
             </button>
             <button
+              type="button"
+              className="bank-button secondary"
+              disabled={saving}
+              onClick={() => void saveTransaction()}
+            >
+              {saving ? 'Enregistrement…' : 'Enregistrer comme transaction'}
+            </button>
+            <button
               type="submit"
               className="bank-button primary"
               disabled={loading}
@@ -357,6 +403,13 @@ export default function TransactionAnalysis() {
               {loading ? 'Analyse en cours...' : 'Analyser la transaction →'}
             </button>
           </div>
+
+          {savedId !== null && (
+            <div className="info-note" role="status">
+              Transaction n° {savedId} enregistrée :{' '}
+              <Link to="/transactions">voir mes transactions</Link>.
+            </div>
+          )}
         </form>
 
         <section className="result-column" aria-live="polite">
